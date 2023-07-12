@@ -11,10 +11,10 @@ void * memset ( void * ptr, int value, size_t num )
 
 char digit(int v, int base) {
 	v = v % base;
-	if (v < 9)
+	if (v <= 9)
 		return '0' + v;
 	else
-		return 'A' + v;
+		return 'A' + v - 10;
 }
 
 char *itoa ( int value, char * str, int base ) {

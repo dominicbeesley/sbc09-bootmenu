@@ -1,6 +1,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include "uart.h"
 
 int fputc(int ch, FILE *stream) {
@@ -9,12 +10,21 @@ int fputc(int ch, FILE *stream) {
 
 int fputs(const char *str, FILE *stream) {
     char c;
-    while (c = *str++) {
+    while ((c = *str++)) {
         int r = fputc(c, stream);
         if (r < 0)
             return r;
     }
     return 0;
+}
+
+/* gcc needs these to be real fn's not macros it seems */
+int putc(int ch, FILE *stream) {
+    return fputc(ch, stream);
+}
+
+int puts(const char *str) {
+    return fputs(str, stdout);
 }
 
 
@@ -33,9 +43,9 @@ int vfprintf(FILE *file, char const *fmt, va_list arg) {
     char ch;
     int length = 0;
 
-    char buffer[512];
+    char buffer[17];
 
-    while ( ch = *fmt++) {
+    while ((ch = *fmt++)) {
         if ( '%' == ch ) {
             switch (ch = *fmt++) {
                 /* %% - print out a single %    */
@@ -72,6 +82,9 @@ int vfprintf(FILE *file, char const *fmt, va_list arg) {
                     itoa(int_temp, buffer, 16);
                     fputs(buffer, file);
                     length += strlen(buffer);
+                    break;
+                default:
+                    fmt--; // step back on mistake, not sure if that's correct but it save crapping out if % is last char of format string
                     break;
             }
         }

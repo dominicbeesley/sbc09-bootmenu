@@ -3,20 +3,20 @@
 #define __STDIO_H__
 
 typedef void * va_list;
-typedef void * FILE;
+typedef void FILE;
 
-FILE *stdout;
-FILE *stdin;
+FILE *stdout = 0;
+FILE *stdin = 0;
 
 #define __va_rounded_size(TYPE)  \
   ( ( (sizeof (TYPE) + sizeof (int) - 1) / sizeof (int) ) * sizeof (int)  )
 
 #define va_start(AP, LASTARG)                       \
- (AP = ((char *) &(LASTARG)))
+ (AP = ((char *) &(LASTARG)) + __va_rounded_size(LASTARG))
 
 #define va_arg(AP, TYPE)                        \
-  (AP -= __va_rounded_size (TYPE),                  \
-  *((TYPE *) (AP)))
+  (AP += __va_rounded_size (TYPE),                  \
+  *((TYPE *) (AP - __va_rounded_size(TYPE))))
 
 
 #define va_end(AP)
@@ -28,7 +28,7 @@ extern int fprintf(FILE *file, char const *fmt, ...);
 extern int fputc(int c, FILE *stream);
 extern int fputs(const char *str, FILE *stream);
 
-#define putc(c, f) fputc(c, f)
-#define puts(c, f) fputs(c, f)
+extern int putc(int c, FILE *stream);
+extern int puts(const char *str);
 
 #endif

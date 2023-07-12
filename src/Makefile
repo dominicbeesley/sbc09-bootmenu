@@ -22,5 +22,5 @@ $(BUILD)/%.o: %.s
 
 
 $(BUILD)/boot-menu.srec: $(B_OBJS)
-	$(CROSS_LD) -o $@ -Map=../boot-menu.map --script=boot-menu.link --oformat=srec $(B_OBJS) /usr/lib/gcc/m6809-unknown/4.6.4/libgcc.a
+	$(CROSS_LD) -o $@ -Map=$(patsubst %.srec,%.map,$@) --script=boot-menu.link --oformat=srec -L/usr/lib/gcc/m6809-unknown/4.6.4/ -lgcc $(B_OBJS) 
 	
