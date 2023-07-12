@@ -9,8 +9,4 @@ void init_hardware(void) {
 
 	uart_init();
 	
-	const char *p = message;
-	while (*p) {
-		uart_writec(*p++);
-	}
 }

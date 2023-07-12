@@ -81,5 +81,5 @@ _uart_writec:
 @lp:		bita	SBC09_UART_SRA
 		beq	@lp
 		stb	SBC09_UART_THRA
-
+		clrb
 		rts                
