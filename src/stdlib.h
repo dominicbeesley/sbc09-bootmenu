@@ -4,7 +4,7 @@
 typedef int size_t;
 
 extern void * memset ( void * ptr, int value, size_t num );
-
-char *  itoa ( int value, char * str, int base );
+extern char *  itoa ( int value, char * str, int base );
+extern void *memcpy(void *dest, const void * src, size_t n);
 
 #endif
