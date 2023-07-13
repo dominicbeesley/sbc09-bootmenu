@@ -24,7 +24,10 @@ int putc(int ch, FILE *stream) {
 }
 
 int puts(const char *str) {
-    return fputs(str, stdout);
+    int ret = fputs(str, stdout);
+    if (ret > 0)
+        ret = putc('\n', stdout);
+    return ret;
 }
 
 
@@ -47,7 +50,12 @@ int vfprintf(FILE *file, char const *fmt, va_list arg) {
 
     while ((ch = *fmt++)) {
         if ( '%' == ch ) {
-            switch (ch = *fmt++) {
+            // skip any field specifiers
+            do {
+                ch = *fmt++;
+            } while ((ch >= '0' && ch <= '9') || ch == '.');
+
+            switch (ch) {
                 /* %% - print out a single %    */
                 case '%':
                     fputc('%', file);
