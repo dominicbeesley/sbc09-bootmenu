@@ -61,7 +61,7 @@ spc
 		CMPA	#10
 		BHS	notsrec
 		STA	srec_type,PCR
-		CLR	ck_acc
+		CLR	ck_acc,PCR
 		BSR	gethex
 		BCS	nothex
 		CMPA	#3
@@ -76,7 +76,7 @@ rdlp
 		STA	,Y+
 		DECB
 		BNE	rdlp
-		LDA	ck_acc	
+		LDA	ck_acc,PCR	
 		INCA
 		BNE	badck
 LDAsrec_typ	LDX	bin_start,PCR
@@ -137,8 +137,8 @@ gethex		BSR	gethexnyb
 		ORA	,S+
 		BCS	1F
 		STA	,-S
-		ADDA	ck_acc
-		STA	ck_acc
+		ADDA	ck_acc,PCR
+		STA	ck_acc,PCR
 		LDA	,S+
 		CLC
 1		RTS

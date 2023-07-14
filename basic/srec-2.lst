@@ -23,7 +23,7 @@ FFE3                  OSASCI          EQU     $FFE3
 0E00  308C1B          reloc           leax    enter,PCR
 0E03  3384                            leau    ,X
 0E05  EFE3                            stu     ,--S
-0E07  308D012E                        leax    PROG_END,PCR
+0E07  308D0130                        leax    PROG_END,PCR
 0E0B  1F10                            tfr     X,D
 0E0D  A3E1                            subd    ,S++            
 0E0F  108E0800                        ldy     #RUNLOC
@@ -38,7 +38,7 @@ FFE3                  OSASCI          EQU     $FFE3
 0E20  BDFFE3                          JSR     OSASCI
                               ; Read a line of input to &600
 0E23  108E0600                        LDY     #STRBUF
-0E27  308D0107                        LEAX    os_blk,PCR
+0E27  308D0109                        LEAX    os_blk,PCR
 0E2B  10AF84                          STY     0,X
 0E2E  C6FF                            LDB     #$FF
 0E30  E702                            STB     2,X
@@ -46,138 +46,138 @@ FFE3                  OSASCI          EQU     $FFE3
 0E35  ED03                            STD     3,X
 0E37  8600                            LDA     #0
 0E39  BDFFF1                          JSR     OSWORD
-0E3C  102500E2                        LBCS    escape
+0E3C  102500E4                        LBCS    escape
 0E40  108C0006                        CMPY    #6
-0E44  255E                            BLO     notsrec
+0E44  2560                            BLO     notsrec
 0E46  8E0600                          LDX     #STRBUF
 0E49                  spc
 0E49  A680                            LDA     ,X+
 0E4B  8120                            CMPA    #' '
 0E4D  23FA                            BLS     spc
 0E4F  8153                            CMPA    #'S'
-0E51  2651                            BNE     notsrec
-0E53  1700A2                          LBSR    gethexnyb
-0E56  2551                            BCS     nothex
+0E51  2653                            BNE     notsrec
+0E53  1700A4                          LBSR    gethexnyb
+0E56  2553                            BCS     nothex
 0E58  810A                            CMPA    #10
-0E5A  2448                            BHS     notsrec
-0E5C  A78D00D0                        STA     srec_type,PCR
-0E60  7F0F2F                          CLR     ck_acc
-0E63  8D76                            BSR     gethex
-0E65  2542                            BCS     nothex
-0E67  8103                            CMPA    #3
-0E69  2539                            BLO     notsrec
-0E6B  1F89                            TFR     A,B
-0E6D  A78D00C0                        STA     srec_len,PCR \record length
-0E71  3184                            LEAY    ,X
-0E73  10AF8D00BF                      STY     bin_start,PCR
-0E78                  rdlp
-0E78  8D61                            BSR     gethex
-0E7A  252D                            BCS     nothex
-0E7C  A7A0                            STA     ,Y+
-0E7E  5A                              DECB
-0E7F  26F7                            BNE     rdlp
-0E81  B60F2F                          LDA     ck_acc  
-0E84  4C                              INCA
-0E85  2618                            BNE     badck
-0E87  AE8D00AC        LDAsrec_typ     LDX     bin_start,PCR
-0E8B  A68D00A1                        LDA     srec_type,PCR
-0E8F  8101                            CMPA    #1
-0E91  2728                            BEQ     writemem
-0E93  8109                            CMPA    #9
-0E95  273D                            BEQ     exec
-0E97  863F                            LDA     #'?'
-0E99  BDFFE3                          JSR     OSASCI
-0E9C  16FF7F                          LBRA    enter
+0E5A  244A                            BHS     notsrec
+0E5C  A78D00D2                        STA     srec_type,PCR
+0E60  6F8D00CD                        CLR     ck_acc,PCR
+0E64  8D77                            BSR     gethex
+0E66  2543                            BCS     nothex
+0E68  8103                            CMPA    #3
+0E6A  253A                            BLO     notsrec
+0E6C  1F89                            TFR     A,B
+0E6E  A78D00C1                        STA     srec_len,PCR \record length
+0E72  3184                            LEAY    ,X
+0E74  10AF8D00C0                      STY     bin_start,PCR
+0E79                  rdlp
+0E79  8D62                            BSR     gethex
+0E7B  252E                            BCS     nothex
+0E7D  A7A0                            STA     ,Y+
+0E7F  5A                              DECB
+0E80  26F7                            BNE     rdlp
+0E82  A68D00AB                        LDA     ck_acc,PCR      
+0E86  4C                              INCA
+0E87  2618                            BNE     badck
+0E89  AE8D00AC        LDAsrec_typ     LDX     bin_start,PCR
+0E8D  A68D00A1                        LDA     srec_type,PCR
+0E91  8101                            CMPA    #1
+0E93  2728                            BEQ     writemem
+0E95  8109                            CMPA    #9
+0E97  273D                            BEQ     exec
+0E99  863F                            LDA     #'?'
+0E9B  BDFFE3                          JSR     OSASCI
+0E9E  16FF7D                          LBRA    enter
                       
                                       
-0E9F                  badck
-0E9F  308C70                          LEAX    str_badck,PCR
-0EA2  2008                            BRA     err
-0EA4                  notsrec
-0EA4  308C6E                          LEAX    str_notsrec,PCR
-0EA7  2003                            BRA     err
-0EA9                  nothex
-0EA9  308C72                          LEAX    str_nothex,PCR
-0EAC                  err
-0EAC  8D03                            BSR     printX
-0EAE  16FF6D                          LBRA    enter
+0EA1                  badck
+0EA1  308C70                          LEAX    str_badck,PCR
+0EA4  2008                            BRA     err
+0EA6                  notsrec
+0EA6  308C6E                          LEAX    str_notsrec,PCR
+0EA9  2003                            BRA     err
+0EAB                  nothex
+0EAB  308C72                          LEAX    str_nothex,PCR
+0EAE                  err
+0EAE  8D03                            BSR     printX
+0EB0  16FF6B                          LBRA    enter
                       
-0EB1                  printX
-0EB1  A680                            LDA     ,X+
-0EB3  2705                            BEQ     printXex
-0EB5  BDFFE3                          JSR     OSASCI
-0EB8  20F7                            BRA     printX
-0EBA                  printXex
-0EBA  39                              RTS
+0EB3                  printX
+0EB3  A680                            LDA     ,X+
+0EB5  2705                            BEQ     printXex
+0EB7  BDFFE3                          JSR     OSASCI
+0EBA  20F7                            BRA     printX
+0EBC                  printXex
+0EBC  39                              RTS
                       
-0EBB  8677            writemem                LDA     #'w'
-0EBD  BDFFE3                          JSR     OSASCI
-0EC0  10AE84                          LDY     ,X              ; address
-0EC3  E68C6B                          LDB     srec_len,PCR
-0EC6  C003                            SUBB    #3
-0EC8  3002                            LEAX    2,X
-0ECA                  wmlp
-0ECA  A680                            LDA     ,X+
-0ECC  A7A0                            STA     ,Y+
-0ECE  5A                              DECB
-0ECF  26F9                            BNE     wmlp
-0ED1  16FF4A                          LBRA    enter
-0ED4  8665            exec            LDA     #'e'
-0ED6  BDFFE3                          JSR     OSASCI
-0ED9  6E94                            JMP     [,X]
+0EBD  8677            writemem                LDA     #'w'
+0EBF  BDFFE3                          JSR     OSASCI
+0EC2  10AE84                          LDY     ,X              ; address
+0EC5  E68C6B                          LDB     srec_len,PCR
+0EC8  C003                            SUBB    #3
+0ECA  3002                            LEAX    2,X
+0ECC                  wmlp
+0ECC  A680                            LDA     ,X+
+0ECE  A7A0                            STA     ,Y+
+0ED0  5A                              DECB
+0ED1  26F9                            BNE     wmlp
+0ED3  16FF48                          LBRA    enter
+0ED6  8665            exec            LDA     #'e'
+0ED8  BDFFE3                          JSR     OSASCI
+0EDB  6E94                            JMP     [,X]
                       
-0EDB  8D1B            gethex          BSR     gethexnyb
-0EDD  2518                            BCS     1F
-0EDF  49                              ROLA
-0EE0  49                              ROLA
+0EDD  8D1B            gethex          BSR     gethexnyb
+0EDF  2518                            BCS     1F
 0EE1  49                              ROLA
 0EE2  49                              ROLA
-0EE3  A7E2                            STA     ,-S
-0EE5  8D11                            BSR     gethexnyb
-0EE7  AAE0                            ORA     ,S+
-0EE9  250C                            BCS     1F
-0EEB  A7E2                            STA     ,-S
-0EED  BB0F2F                          ADDA    ck_acc
-0EF0  B70F2F                          STA     ck_acc
-0EF3  A6E0                            LDA     ,S+
-0EF5                                  CLC
-0EF5  1CFE                            ANDCC   #~CC_C
-0EF7  39              1               RTS
+0EE3  49                              ROLA
+0EE4  49                              ROLA
+0EE5  A7E2                            STA     ,-S
+0EE7  8D11                            BSR     gethexnyb
+0EE9  AAE0                            ORA     ,S+
+0EEB  250C                            BCS     1F
+0EED  A7E2                            STA     ,-S
+0EEF  AB8C3F                          ADDA    ck_acc,PCR
+0EF2  A78C3C                          STA     ck_acc,PCR
+0EF5  A6E0                            LDA     ,S+
+0EF7                                  CLC
+0EF7  1CFE                            ANDCC   #~CC_C
+0EF9  39              1               RTS
                       
-0EF8  A680            gethexnyb       LDA     ,X+
-0EFA  8030                            SUBA    #'0'
-0EFC  2513                            BCS     1F
-0EFE  810A                            CMPA    #10
-0F00  250D                            BLO     2F
-0F02  8007                            SUBA    #7
-0F04  810A                            CMPA    #10
-0F06  2509                            BCS     1F
-0F08  8110                            CMPA    #16
-0F0A  2503                            BLO     2F
-0F0C                                  SEC
-0F0C  1A01                            ORCC    #CC_C
-0F0E  39                              RTS
-0F0F                  2               CLC
-0F0F  1CFE                            ANDCC   #~CC_C
-0F11  39              1               RTS
+0EFA  A680            gethexnyb       LDA     ,X+
+0EFC  8030                            SUBA    #'0'
+0EFE  2513                            BCS     1F
+0F00  810A                            CMPA    #10
+0F02  250D                            BLO     2F
+0F04  8007                            SUBA    #7
+0F06  810A                            CMPA    #10
+0F08  2509                            BCS     1F
+0F0A  8110                            CMPA    #16
+0F0C  2503                            BLO     2F
+0F0E                                  SEC
+0F0E  1A01                            ORCC    #CC_C
+0F10  39                              RTS
+0F11                  2               CLC
+0F11  1CFE                            ANDCC   #~CC_C
+0F13  39              1               RTS
                       
-0F12  434B00          str_badck       FCN     "CK"
-0F15  5352454300      str_notsrec     FCN     "SREC"          
-0F1A  45736300        str_escape      FCN     "Esc"
-0F1E  48455800        str_nothex      FCN     "HEX"
+0F14  434B00          str_badck       FCN     "CK"
+0F17  5352454300      str_notsrec     FCN     "SREC"          
+0F1C  45736300        str_escape      FCN     "Esc"
+0F20  48455800        str_nothex      FCN     "HEX"
                       
-0F22                  escape
-0F22  308CF5                          LEAX    str_escape,PCR
-0F25  8D8A                            BSR     printX
-0F27  867E                            LDA     #OSB_ACKESC
-0F29  BDFFF4                          JSR     OSBYTE
-0F2C  16FEEF                          LBRA    enter
-0F2F  00              ck_acc          FCB     0
-0F30  00              srec_type       FCB     0
-0F31  00              srec_len                FCB     0
-0F32  0000000000      os_blk          RZB     5
-0F37  0000            bin_start       FDB     0
+0F24                  escape
+0F24  308CF5                          LEAX    str_escape,PCR
+0F27  8D8A                            BSR     printX
+0F29  867E                            LDA     #OSB_ACKESC
+0F2B  BDFFF4                          JSR     OSBYTE
+0F2E  16FEED                          LBRA    enter
+0F31  00              ck_acc          FCB     0
+0F32  00              srec_type       FCB     0
+0F33  00              srec_len                FCB     0
+0F34  0000000000      os_blk          RZB     5
+0F39  0000            bin_start       FDB     0
                       
-0F39                  PROG_END
+0F3B                  PROG_END
                       
-0F39                                  END     reloc
+0F3B                                  END     reloc
