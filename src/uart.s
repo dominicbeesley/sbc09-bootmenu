@@ -71,6 +71,10 @@ _uart_readc:
 @lp:		bita	SBC09_UART_SRA
 		beq	@lp
 		ldb	SBC09_UART_RHRA
+		clra
+		tfr 	D,X
+
+		jsr	_uart_writec
 
 		rts
 
