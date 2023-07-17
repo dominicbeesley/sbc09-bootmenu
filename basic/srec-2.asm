@@ -25,7 +25,8 @@ reloc		leax	enter,PCR
 		stu	,--S
 		leax	PROG_END,PCR
 		tfr	X,D
-		subd	,S++		
+		subd	,S++	
+		tfr	D,X	
 		ldy	#RUNLOC
 1		lda	,U+
 		sta	,Y+
@@ -67,7 +68,7 @@ spc
 		CMPA	#3
 		BLO	notsrec
 		TFR	A,B
-		STA	srec_len,PCR \record length
+		STA	srec_len,PCR 	;record length
 		LEAY	,X
 		STY	bin_start,PCR
 rdlp
