@@ -4,6 +4,25 @@
 #include <string.h>
 #include "uart.h"
 
+unsigned char last_cr = 0;
+
+int fgetc(FILE *stream) {
+    char ret = uart_readc();
+    if (ret == '\r')
+    {
+        last_cr = 1;
+        return '\n';
+    }
+
+    last_cr = '0';
+    if (ret == '\n') {
+        if (last_cr)
+            return fgetc(stream);
+    }
+
+    return ret;
+}
+
 int fputc(int ch, FILE *stream) {
     return uart_writec(ch);
 }
@@ -86,8 +105,13 @@ int vfprintf(FILE *file, char const *fmt, va_list arg) {
 
                 /* %x: print out an int in hex  */
                 case 'x':
+                case 'X':
                     int_temp = va_arg(arg, int);
                     itoa(int_temp, buffer, 16);
+                    if (ch == 'x') {
+                        char *p = buffer;
+                        while ((*p = tolower(*p))) p++;
+                    }
                     fputs(buffer, file);
                     length += strlen(buffer);
                     break;
@@ -122,4 +146,34 @@ int fprintf(FILE *file, char const *fmt, ...) {
     length = vfprintf(file, fmt, arg);
     va_end(arg);
     return length;
+}
+
+
+char *fgets(char * s, size_t n, FILE * stream)
+{
+    register char *p;
+    int c;
+
+    if (n <= 0) {
+        goto ERROR;
+    }
+
+    p = s;
+
+    while (--n) {
+        if ((c = fgetc(stream)) == EOF) {
+            break;
+        }
+        if ((*p++ = c) == '\n') {
+            break;
+        }
+    }
+
+    if (p > s) {
+        *p = 0;
+        return s;
+    }
+
+ ERROR:
+    return NULL;
 }

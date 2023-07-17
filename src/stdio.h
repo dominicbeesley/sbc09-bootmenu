@@ -2,6 +2,9 @@
 #ifndef __STDIO_H__
 #define __STDIO_H__
 
+typedef int size_t;
+
+
 typedef void * va_list;
 typedef void FILE;
 
@@ -28,7 +31,12 @@ extern int fprintf(FILE *file, char const *fmt, ...);
 extern int fputc(int c, FILE *stream);
 extern int fputs(const char *str, FILE *stream);
 
+extern int fgetc(FILE *stream);
+extern char *fgets(char *buf, size_t num, FILE *stream);
+
 extern int putc(int c, FILE *stream);
 extern int puts(const char *str);
+
+#define EOF -1
 
 #endif
