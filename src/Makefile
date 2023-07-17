@@ -8,7 +8,7 @@ export CROSS_CCOPTS=-c -Wall -Os -msoft-reg-count=0 -mfar-stack-param -mcode-sec
 #CROSS_CCOPTS += -fno-cprop-registers
 
 
-OBJS=crt0 commonmem main uart stdlib stdlib_s stdio string
+OBJS=crt0 commonmem main uart stdlib stdlib_s stdio string ctype
 
 B_OBJS=$(addprefix $(BUILD)/, $(addsuffix .o, $(OBJS)))
 
@@ -23,4 +23,10 @@ $(BUILD)/%.o: %.s
 
 $(BUILD)/boot-menu.srec: $(B_OBJS)
 	$(CROSS_LD) -o $@ -Map=$(patsubst %.srec,%.map,$@) --script=boot-menu.link --oformat=srec -L/usr/lib/gcc/m6809-unknown/4.6.4/ -lgcc $(B_OBJS) 
+	cat ../basic/runme.txt $@ > $(patsubst %.srec,%.run.srec, $@)
+
+clean:
+	-rm $(BUILD)/boot-menu.run.srec
+	-rm $(BUILD)/boot-menu.srec
+	-rm $(B_OBJS)
 	
