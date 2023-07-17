@@ -9,7 +9,7 @@
 	.globl	_malloc
 	.globl	_memcpy
 	.globl	_abort
-
+	.globl   IRQ_HANDLER
 	.globl	_default_vectors
 
 
@@ -27,13 +27,13 @@ _default_vectors:
 	fdb	_default_swi3
 	fdb	_default_swi2
 	fdb	_default_firq
-	fdb	_default_irq
+	fdb	IRQ_HANDLER
 	fdb	_default_swi
 	fdb	_default_nmi
 	fdb	_default_res
 
 
-main:	orcc 	#0x10		; interrupts definitely off
+main:	orcc 	#0x50		; interrupts definitely off
 	lds 	#kstack_top
 
 	;; zero out kernel's bss section
@@ -70,8 +70,7 @@ ab1:	; assume the stack's gone
 	jsr	_printstr
 	puls	X
 	jsr	_printstr	
-@h:	sync			; halt
-	bra	@h
+@h:	bra	@h
 
 _default_ill0:
 	ldx	#str_ill0
@@ -84,9 +83,6 @@ _default_swi2:
 	bra	ab1
 _default_firq:
 	ldx	#str_firq
-	bra	ab1
-_default_irq:
-	ldx	#str_irq
 	bra	ab1
 _default_swi:
 	ldx	#str_swi
@@ -103,7 +99,7 @@ _default_res:
 _printstr:
 @lp:	ldb	,X+
 	beq	@sk
-	jsr	_uart_writec
+	jsr	uart_writec_direct
 	bra	@lp
 @sk:	rts
 
@@ -115,7 +111,6 @@ str_ill0:	fcn "illegal"
 str_swi3:	fcn "swi3"
 str_swi2:	fcn "swi2"
 str_firq:	fcn "firq"
-str_irq:		fcn "irq"
 str_swi:		fcn "swi"
 str_nmi:		fcn "nmi"
 str_res:		fcn "reset"

@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <ctype.h>
 #include "uart.h"
 
 unsigned char last_cr = 0;
@@ -11,14 +12,17 @@ int fgetc(FILE *stream) {
     if (ret == '\r')
     {
         last_cr = 1;
-        return '\n';
+        ret = '\n';
+    } else {
+
+        last_cr = '0';
+        if (ret == '\n') {
+            if (last_cr)
+                ret = fgetc(stream);
+        }
     }
 
-    last_cr = '0';
-    if (ret == '\n') {
-        if (last_cr)
-            return fgetc(stream);
-    }
+    uart_writec(ret);
 
     return ret;
 }
