@@ -48,7 +48,7 @@ int putc(int ch, FILE *stream) {
 
 int puts(const char *str) {
     int ret = fputs(str, stdout);
-    if (ret > 0)
+    if (ret >= 0)
         ret = putc('\n', stdout);
     return ret;
 }
@@ -63,6 +63,8 @@ int puts(const char *str) {
 int vfprintf(FILE *file, char const *fmt, va_list arg) {
 
     int int_temp;
+    long long_temp;
+    int fmt_long = 0;
     char char_temp;
     char *string_temp;
 
@@ -76,7 +78,9 @@ int vfprintf(FILE *file, char const *fmt, va_list arg) {
             // skip any field specifiers
             do {
                 ch = *fmt++;
-            } while ((ch >= '0' && ch <= '9') || ch == '.');
+                if (ch == 'l' || ch == 'L') 
+                    fmt_long = 1;
+            } while ((ch >= '0' && ch <= '9') || ch == '.' || ch == 'l' || ch == 'L');
 
             switch (ch) {
                 /* %% - print out a single %    */
@@ -101,8 +105,14 @@ int vfprintf(FILE *file, char const *fmt, va_list arg) {
 
                 /* %d: print out an int         */
                 case 'd':
-                    int_temp = va_arg(arg, int);
-                    itoa(int_temp, buffer, 10);
+                    if (fmt_long)                    
+                    {
+                        long_temp = va_arg(arg, long);
+                        ltoa(long_temp, buffer, 10);
+                    } else {
+                        int_temp = va_arg(arg, int);
+                        itoa(int_temp, buffer, 10);
+                    }
                     fputs(buffer, file);
                     length += strlen(buffer);
                     break;
@@ -110,8 +120,14 @@ int vfprintf(FILE *file, char const *fmt, va_list arg) {
                 /* %x: print out an int in hex  */
                 case 'x':
                 case 'X':
-                    int_temp = va_arg(arg, int);
-                    itoa(int_temp, buffer, 16);
+                    if (fmt_long)                    
+                    {
+                        long_temp = va_arg(arg, long);
+                        ltoa(long_temp, buffer, 16);
+                    } else {
+                        int_temp = va_arg(arg, int);
+                        itoa(int_temp, buffer, 16);
+                    }
                     if (ch == 'x') {
                         char *p = buffer;
                         while ((*p = tolower(*p))) p++;

@@ -58,3 +58,22 @@ char *itoa ( int value, char * str, int base ) {
 	return str;
 }
 
+char *ltoa (long value, char * str, int base ) {
+	//simplistic
+	str[0] = 0;
+	int minus = 0;
+	unsigned long uvalue = value;
+	if (value < 0 && base == 10) {
+		uvalue = -value;
+		minus = 1;
+	}
+	do {
+		char c = digit(uvalue, base);
+		pushch(str, c);
+		uvalue = uvalue / base;
+
+	} while (uvalue != 0);
+	if (minus)
+		pushch(str, '-');
+	return str;
+}
