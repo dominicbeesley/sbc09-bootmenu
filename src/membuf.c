@@ -48,11 +48,11 @@ void membuf_out(unsigned char *dest, unsigned int src_addr, unsigned int len)
 	if ((unsigned long)src_addr + len > 0x10000) {
 		unsigned int rem = src_addr + len;
 		unsigned int l1 = - rem;
-		memw_out(dest, src_addr | (long)((MMU_SEL_RAM) | (MMU_MEM_MAX - 4)) << 14, l1);
+		memw_out(dest, (long)src_addr + ((long)((MMU_SEL_RAM) | (MMU_MEM_MAX - 4)) << 14), l1);
 		memw_out(dest, 0 | (long)((MMU_SEL_RAM) | (MMU_MEM_MAX - 4)) << 14, rem);
 
 	} else {
-		memw_out(dest, src_addr | (long)((MMU_SEL_RAM) | (MMU_MEM_MAX - 4)) << 14, len);
+		memw_out(dest, (long)src_addr + ((long)((MMU_SEL_RAM) | (MMU_MEM_MAX - 4)) << 14), len);
 	}
 }
 
