@@ -6,7 +6,7 @@ void * memset ( void * ptr, int value, size_t num )
 	while (num--) {
 		*p++=value;
 	}
-	return (void *)p;
+	return ptr;
 }
 
 void *memcpy(void *dest, const void * src, size_t num) {
