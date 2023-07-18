@@ -3,7 +3,7 @@
 #include <ctype.h>
 #include "uart.h"
 #include "hardware.h"
-
+#include "crc16.h"
 
 extern int default_vectors;
 
@@ -72,11 +72,10 @@ void membuf_in(unsigned char *src, unsigned int dest_addr, unsigned int len) {
 		unsigned int end2 = ((ptr & 0xC000) == (end & 0xC000)) ? end : (ptr & 0xC000) | 0x3FFF;
 		unsigned int n = end2 - ptr + 1;
 
+		// page the block into WINDOW
 		unsigned char ix = (MMU_SEL_RAM) | (MMU_MEM_MAX - 4 + (ptr >> 14));
 		mmu_16(MMU_IX_WINDOW) = ix;
-//		printf("%x - %x, %x:%d written \n", ptr, end2, ix, n);
 
-		// page the block into WINDOW
 		memcpy((void *)(R_WINDOW + (ptr & 0x3FFF)), src, n);
 		
 		if (!(end2 + 1))
@@ -86,7 +85,6 @@ void membuf_in(unsigned char *src, unsigned int dest_addr, unsigned int len) {
 }
 
 
-unsigned char srec_ck = 0;
 int membuf_read_srec(const char *p) {
 	unsigned char buf[64];
 	unsigned char srec_type = *p++;
@@ -101,15 +99,16 @@ int membuf_read_srec(const char *p) {
 		goto ERROR_BAD;
 
 	ck = len;
+	int l = len;
 	unsigned char *b = buf;
-	while (len) {
+	while (l) {
 		p+=2;
 		int x = srec_hex(p);
 		if (x < 0 )
 			goto ERROR_BAD;
 		*b++ = x;
 		ck += x;
-		len --;
+		l --;
 	}
 
 	if (ck != 0xFF)
@@ -121,16 +120,16 @@ int membuf_read_srec(const char *p) {
 	{
 		printf("EXEC address : %X\n", addr);
 	} else if (srec_type == '1') {
-		int l = buf[0] - 3;
+		l = len - 3;
 		if (addr < membuf_min)
 			membuf_min = addr;
 		if (addr + l - 1 >= membuf_max)
 			membuf_max = addr + l - 1;
 
-		membuf_in(buf + 2, addr, buf[0] - 3);
+		membuf_in(buf + 2, addr, l);
 	}
 
-	return;
+	return 0;
 ERROR_BAD:
 	puts("Bad SREC");
 	return -1;
@@ -153,6 +152,45 @@ void membuf_clear() {
 
 
 	puts("Buffer cleared\n");
+}
+
+
+unsigned int membuf_crc16(unsigned int addr, unsigned int end) {
+	unsigned int crc = 0;
+	while (addr < end) {
+		// 16K aligned blocks
+		unsigned int end2 = ((addr & 0xC000) == (end & 0xC000)) ? end : (addr & 0xC000) | 0x3FFF;
+		unsigned int n = end2 - addr + 1;
+
+		// page the block into WINDOW
+		unsigned char ix = (MMU_SEL_RAM) | (MMU_MEM_MAX - 4 + (addr >> 14));
+		mmu_16(MMU_IX_WINDOW) = ix;
+
+		crc = crc16(crc, (void *)(R_WINDOW + (addr & 0x3FFF)), n);
+		printf("%x - %x : %x\n", addr, end2, crc);		
+		
+		if (!(end2 + 1))
+			break;
+		addr = end2+1;
+	}
+	return crc;
+}
+
+
+void membuf_info() {
+	if (membuf_max < membuf_min)
+	{
+		puts("Buffer empty\n");
+		return;
+	} else {
+		printf("Buffer data %x - %x\n", membuf_min, membuf_max);
+		printf("CRC %x", membuf_crc16(membuf_min, membuf_max));
+	}
+}
+
+void byy(void) {
+	unsigned int crc = 0;
+	crc16(crc, (void *)0xDEAD, 0xBEEF);
 }
 
 
@@ -222,9 +260,11 @@ int main(void) {
 			case 'S':
 				membuf_read_srec(p);
 				break;
+			case '?':
+				membuf_info();
 			default:
 				printf("\nUnrecognized command %c %x\n", (int)cmd, (int)cmd);
-				break;
+				break;			
 			}
 		} 
 	}
