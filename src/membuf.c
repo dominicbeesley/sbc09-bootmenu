@@ -16,30 +16,22 @@ unsigned int membuf_exec;
 */
 
 void membuf_in(unsigned char *src, unsigned int dest_addr, unsigned int len) {
-	unsigned int ptr = dest_addr;
-	unsigned int end = dest_addr + len - 1;
+	if ((unsigned long)dest_addr + len > 0x10000) {
+		unsigned int rem = dest_addr + len;
+		unsigned int l1 = - rem;
+		memw_in(src, (long)dest_addr + ((long)((MMU_SEL_RAM) | (MMU_MEM_MAX - 4)) << 14), l1);
+		memw_in(src, 0 | (long)((MMU_SEL_RAM) | (MMU_MEM_MAX - 4)) << 14, rem);
+		membuf_min = 0;
+		if (l1 - 1 > membuf_max)
+			membuf_max = l1 - 1;
+	} else {
+		memw_in(src, (long)dest_addr + ((long)((MMU_SEL_RAM) | (MMU_MEM_MAX - 4)) << 14), len);
 
-	while (ptr < end) {
+		if (dest_addr < membuf_min)
+			membuf_min = dest_addr;
+		if (dest_addr + len - 1 > membuf_max)
+			membuf_max = dest_addr + len - 1;
 
-		// 16K aligned blocks
-		unsigned int end2 = ((ptr & 0xC000) == (end & 0xC000)) ? end : (ptr & 0xC000) | 0x3FFF;
-		unsigned int n = end2 - ptr + 1;
-
-		// do this here to account for cases where there's a wrap-around
-		if (ptr < membuf_min)
-			membuf_min = ptr;
-		if (end2 >= membuf_max)
-			membuf_max = end2;
-
-		// page the block into WINDOW
-		unsigned char ix = (MMU_SEL_RAM) | (MMU_MEM_MAX - 4 + (ptr >> 14));
-		mmu_16(MMU_IX_WINDOW) = ix;
-
-		memcpy((void *)(R_WINDOW + (ptr & 0x3FFF)), src, n);
-		
-		if (!(end2 + 1))
-			break;
-		ptr = end2+1;
 	}
 }
 
