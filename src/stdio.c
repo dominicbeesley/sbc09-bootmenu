@@ -53,6 +53,14 @@ int puts(const char *str) {
     return ret;
 }
 
+int mpad(int pad, char padch, const char *p) {
+    int l = strlen(p);
+    for (int i = l ; i < pad; i++)
+    {
+        putc(padch, stdout);
+    }
+    return l;
+}
 
 /***************************** 
  * printf routines 
@@ -64,7 +72,6 @@ int vfprintf(FILE *file, char const *fmt, va_list arg) {
 
     int int_temp;
     long long_temp;
-    int fmt_long = 0;
     char char_temp;
     char *string_temp;
 
@@ -76,10 +83,26 @@ int vfprintf(FILE *file, char const *fmt, va_list arg) {
     while ((ch = *fmt++)) {
         if ( '%' == ch ) {
             // skip any field specifiers
+            int fmt_long = 0;
+            int pad = -1;
+            int pad2 = 0;
+            char padch = ' ';
             do {
                 ch = *fmt++;
                 if (ch == 'l' || ch == 'L') 
                     fmt_long = 1;
+                else if (!pad2 & (ch >= '0' && ch <= '9')) {
+                    if (pad < 0)
+                    {
+                        pad = ch - '0';
+                        if (ch == '0')
+                            padch = '0';
+                    } else {
+                        pad = (pad * 10) + (ch - '0');
+                    }
+                } else if (ch == '.') {
+                    pad2 = 1;
+                }
             } while ((ch >= '0' && ch <= '9') || ch == '.' || ch == 'l' || ch == 'L');
 
             switch (ch) {
@@ -99,8 +122,8 @@ int vfprintf(FILE *file, char const *fmt, va_list arg) {
                 /* %s: print out a string       */
                 case 's':
                     string_temp = va_arg(arg, char *);
+                    length += mpad(pad, padch, buffer);
                     fputs(string_temp, file);
-                    length += strlen(string_temp);
                     break;
 
                 /* %d: print out an int         */
@@ -113,8 +136,8 @@ int vfprintf(FILE *file, char const *fmt, va_list arg) {
                         int_temp = va_arg(arg, int);
                         itoa(int_temp, buffer, 10);
                     }
+                    length += mpad(pad, padch, buffer);
                     fputs(buffer, file);
-                    length += strlen(buffer);
                     break;
 
                 /* %x: print out an int in hex  */
@@ -132,8 +155,8 @@ int vfprintf(FILE *file, char const *fmt, va_list arg) {
                         char *p = buffer;
                         while ((*p = tolower(*p))) p++;
                     }
+                    length += mpad(pad, padch, buffer);
                     fputs(buffer, file);
-                    length += strlen(buffer);
                     break;
                 default:
                     fmt--; // step back on mistake, not sure if that's correct but it save crapping out if % is last char of format string
