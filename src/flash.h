@@ -7,7 +7,7 @@ typedef struct flash_def {
 	unsigned int dev_id;
 	unsigned int sec_size;
 	unsigned int n_secs;
-	const char name[10];
+	const char name[12];
 } t_flash_def;
 
 extern const t_flash_def *detected_flash_type;

@@ -64,6 +64,17 @@ int gethex_uint(const char **p, unsigned int *ret) {
 	return val;
 }
 
+void boot(const char *p) {
+	unsigned long phys_addr;
+	if (gethex_ulong(&p, &phys_addr) < 0)
+		goto ERROR;
+
+	do_boot(phys_addr);
+
+ERROR:
+	printf ("Bad command: ! <phys_addr> : !%s \n", p);
+
+}
 
 void write_mem(const char *p) {
 	unsigned long phys_addr;
@@ -217,7 +228,7 @@ void info(void) {
 	if (!detected_flash_type) {
 		fputs("**WARNING** Flash rom type not recognized default to 64K*7", stdout);
 	} else {
-		printf("Flash ROM:\t%8s\nID:\t\t%x/%x\nSize:\t\t%dx%x=%dKB\n",  current_flash_type->name, current_flash_type->manu_id, current_flash_type->dev_id, current_flash_type->sec_size, current_flash_type->n_secs, current_flash_type->sec_size * current_flash_type->n_secs );
+		printf("Flash ROM:\t%12s\nID:\t\t%x/%x\nSize:\t\t%dx%x=%dKB\n",  current_flash_type->name, current_flash_type->manu_id, current_flash_type->dev_id, current_flash_type->sec_size, current_flash_type->n_secs, current_flash_type->sec_size * current_flash_type->n_secs );
 	}
 
 
@@ -273,6 +284,9 @@ int main(void) {
 				break;
 			case '?':
 				info();
+				break;
+			case '!':
+				boot(p);
 				break;
 			case 'W':
 				write_mem(p);

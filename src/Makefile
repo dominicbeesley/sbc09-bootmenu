@@ -8,7 +8,7 @@ export CROSS_CCOPTS=-std=c99 -c -Wall -Os -msoft-reg-count=0 -mfar-stack-param -
 #CROSS_CCOPTS += -fno-cprop-registers
 
 
-OBJS=crt0 commonmem main uart stdlib stdlib_s stdio string ctype crc16 membuf memw srec flash
+OBJS=crt0 commonmem main uart stdlib stdlib_s stdio string ctype crc16 membuf memw srec flash boot
 
 B_OBJS=$(addprefix $(BUILD)/, $(addsuffix .o, $(OBJS)))
 
