@@ -21,9 +21,13 @@ void memw_in(unsigned char *src, unsigned long dest_addr, unsigned int len) {
 
 		// page the block into WINDOW
 		unsigned char ix = (ptr >> 14);
-		mmu_16(MMU_IX_WINDOW) = ix;
 
-		memcpy((void *)(R_WINDOW + (ptr & 0x3FFF)), src, n);
+		if ((ptr & 0x300000) == 0) {
+			flash_write(ptr, src, len);
+		} else {
+			mmu_16(MMU_IX_WINDOW) = ix;		
+			memcpy((void *)(R_WINDOW + (ptr & 0x3FFF)), src, n);
+		}
 		
 		if (!(end2 + 1))
 			break;

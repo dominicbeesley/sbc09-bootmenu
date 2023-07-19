@@ -62,8 +62,6 @@ void membuf_clear() {
 	membuf_min = 0xFFFF;
 	membuf_max = 0;
 	membuf_exec = -1;
-
-	puts("Buffer cleared\n");
 }
 
 

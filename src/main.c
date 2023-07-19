@@ -88,9 +88,24 @@ void write_mem(const char *p) {
 		goto ERROR;
 
 	if (plus)
-		buf_end += buf_addr;
+		buf_end += buf_addr-1;
 
-	
+	while (buf_addr != buf_end + 1) {
+		unsigned int l;
+		if (buf_addr > buf_end) 
+			l = sizeof(general_buf);
+		else {
+			l = buf_end - buf_addr + 1;
+			if (l > sizeof(general_buf))
+				l = sizeof(general_buf);
+		}		
+		printf("W:%lx %x %x\n", phys_addr, buf_addr, l);
+		membuf_out(general_buf, buf_addr, l);
+		memw_in(general_buf, phys_addr, l);
+		buf_addr += l;
+		phys_addr += l;
+	}
+
 	
 	
 
@@ -124,18 +139,18 @@ void read_mem(const char *p) {
 		goto ERROR;
 
 	if (plus)
-		buf_end += buf_addr;
+		buf_end += buf_addr-1;
 
-	while (buf_addr != buf_end) {
+	while (buf_addr != buf_end + 1) {
 		unsigned int l;
 		if (buf_addr > buf_end) 
 			l = sizeof(general_buf);
 		else {
-			l = buf_end - buf_addr;
+			l = buf_end - buf_addr + 1;
 			if (l > sizeof(general_buf))
 				l = sizeof(general_buf);
 		}		
-		printf("%lx %x %x", phys_addr, buf_addr, l);
+		printf("R:%lx %x %x\n", phys_addr, buf_addr, l);
 		memw_out(general_buf, phys_addr, l);
 		membuf_in(general_buf, buf_addr, l);
 		buf_addr += l;
@@ -158,7 +173,6 @@ void dump(const char *p) {
 
 
 	unsigned int end = (dump_addr + 0x100) & 0xFF00;
-	unsigned char first = 1;
 
 	printf("%x %x\n", dump_addr, end);
 
@@ -198,6 +212,18 @@ void dump(const char *p) {
 
 }
 
+void info(void) {
+
+	if (!detected_flash_type) {
+		fputs("**WARNING** Flash rom type not recognized default to 64K*7", stdout);
+	} else {
+		printf("Flash ROM:\t%8s\nID:\t\t%x/%x\nSize:\t\t%dx%x=%dKB\n",  current_flash_type->name, current_flash_type->manu_id, current_flash_type->dev_id, current_flash_type->sec_size, current_flash_type->n_secs, current_flash_type->sec_size * current_flash_type->n_secs );
+	}
+
+
+	membuf_info();
+}
+
 int main(void) {
 
 	// setup channel A of UART for 115200 and 16K MMU enabled
@@ -215,25 +241,14 @@ int main(void) {
 	__asm("\tandcc	#0xAF");
 
 
-	*((int*)0x8000) = 0xBEEF;
-	printf("TEST: %x\n", *((int*)0x8000));
-	printf("TEST: %x\n", *((int*)0xC000));
-	printf("TEST: %x\n", *((int*)0xB7FA));
-	printf("TEST: %x\n", *((int*)0xF7FA));
-
-	puts("SBC09 :\t\tBootloader\n");
+	puts("\n\nSBC09 - Bootloader\n====================\n");
 	// check type of flash rom present
 	// map bottom of flash into mmu at 8000
 	mmu_16(2) = 0;
 
 	flash_init();
-	if (!detected_flash_type) {
-		fputs("**WARNING** Flash rom type not recognized default to 64K*7", stdout);
-	} 
-	printf("Flash ROM:\t%x/%x:%8s\n", current_flash_type->manu_id, current_flash_type->dev_id, current_flash_type->name);
-	
-
 	membuf_clear();
+	info();
 
 	while (1) {
 		putc(':', stdout);
@@ -246,7 +261,9 @@ int main(void) {
 
 			switch (cmd) {
 			case 'C':
+				fputs("Clearing Buffer...", stdout);
 				membuf_clear();
+				puts("cleared");
 				break;
 			case 'D':
 				dump(p);
@@ -255,14 +272,14 @@ int main(void) {
 				srec_read_to_membuf(p);
 				break;
 			case '?':
-				membuf_info();
+				info();
 				break;
 			case 'W':
 				write_mem(p);
 				break;
 			case 'R':
 				read_mem(p);
-				break;
+				break;			
 			default:
 				printf("\nUnrecognized command %c %x\n", (int)cmd, (int)cmd);
 				break;			
