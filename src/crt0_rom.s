@@ -5,13 +5,18 @@
 ;;;  imported symbols
 	.globl 	_main
 	.globl 	init_hardware
-	.globl 	kstack_top
+	.globl 	_kstack_top
 	.globl	_malloc
 	.globl	_memcpy
 	.globl	_abort
 	.globl   IRQ_HANDLER
 	.globl	_default_vectors
 
+	;; exported symbols
+	.globl 	_kstack_top
+	.globl   _general_buf
+	.globl	_uart_in_buf
+	.globl	_uart_out_buf
 
 
 	.area 	.vectors
@@ -67,8 +72,7 @@ bss_wipe:
 	leay 	-1,y
 	bne 	bss_wipe
 
-;	lds	#kstack_top
-	lds	#$E00		;TESTING TODO put back
+	lds	#_kstack_top
 
 	;; interrupts on
 	andcc	#0xAF
@@ -92,7 +96,7 @@ _abort:
 
 
 ab1:	; assume the stack's gone
-	lds	#kstack_top
+	lds	#_kstack_top
 
 	orcc	#0x50
 	pshs	X
@@ -151,3 +155,12 @@ str_swi:		fcn "swi"
 str_nmi:		fcn "nmi"
 str_res:		fcn "reset"
 str_crash:	fcn "CRASH: "
+
+	.area	stack,bss
+_kstack_base:	rmb 0x200
+_kstack_top:	
+_general_buf:	rmb 0x400
+
+	.area	buffers,bss
+_uart_in_buf:	rmb 0x100
+_uart_out_buf:	rmb 0x100

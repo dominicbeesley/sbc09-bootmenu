@@ -202,10 +202,12 @@ IRQ_TX_EMPTY
 		lda	#IMR_CTR|IMR_RxRDY_A	; Disable TX interrupts
 		sta	SBC09_UART_IMR
 		bra	IRQ_TIMER		
+
+ubuf_rx	equ _uart_in_buf
+ubuf_tx	equ _uart_out_buf
+
 	
 	.area .bss
-ubuf_rx:		rmb 256
-ubuf_tx:		rmb 256
 ubuf_rx_head:		rmb 1
 ubuf_rx_tail:		rmb 1
 ubuf_tx_head:		rmb 1

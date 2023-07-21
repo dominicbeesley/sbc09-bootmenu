@@ -10,12 +10,9 @@
 #include "srec.h"
 #include "boot.h"
 #include "rdline.h"
+#include "commonmem.h"
 
 extern int default_vectors;
-
-// this must be a power of 2 in size
-unsigned char general_buf[1024];
-
 
 
 int nyb(char c) {
@@ -109,11 +106,11 @@ void write_mem(const char *p) {
 	while (buf_addr != buf_end + 1) {
 		unsigned int l;
 		if (buf_addr > buf_end) 
-			l = sizeof(general_buf);
+			l = GENERAL_BUF_SIZE;
 		else {
 			l = buf_end - buf_addr + 1;
-			if (l > sizeof(general_buf))
-				l = sizeof(general_buf);
+			if (l > GENERAL_BUF_SIZE)
+				l = GENERAL_BUF_SIZE;
 		}		
 		printf("W:%lx %x %x\n", phys_addr, buf_addr, l);
 		membuf_out(general_buf, buf_addr, l);
@@ -160,11 +157,11 @@ void read_mem(const char *p) {
 	while (buf_addr != buf_end + 1) {
 		unsigned int l;
 		if (buf_addr > buf_end) 
-			l = sizeof(general_buf);
+			l = GENERAL_BUF_SIZE;
 		else {
 			l = buf_end - buf_addr + 1;
-			if (l > sizeof(general_buf))
-				l = sizeof(general_buf);
+			if (l > GENERAL_BUF_SIZE)
+				l = GENERAL_BUF_SIZE;
 		}		
 		printf("R:%lx %x %x\n", phys_addr, buf_addr, l);
 		memw_out(general_buf, phys_addr, l);
@@ -197,7 +194,7 @@ int promptSure(const char *prompt) {
 
 void erase(const char *p) {
 	unsigned long phys_addr;
-	unsigned int phys_end;
+	unsigned long phys_end;
 	unsigned char plus = 0;
 
 	skip_spaces(&p);
@@ -222,7 +219,7 @@ void erase(const char *p) {
 		p++;
 	}
 
-	if (gethex_uint(&p, &phys_end) < 0)
+	if (gethex_ulong(&p, &phys_end) < 0)
 		goto ERROR;
 
 
@@ -230,15 +227,18 @@ void erase(const char *p) {
 	if (plus)
 		phys_end += phys_addr-1;
 
+
 	// clear buffer
-	memset(general_buf, 0xFF, sizeof(general_buf));
+	memset(general_buf, 0xFF, GENERAL_BUF_SIZE);
 
 	unsigned long flash_mask = (current_flash_type->sec_size * 1024) - 1;
-	unsigned long buf_mask = (sizeof(general_buf)) - 1;
+	unsigned long buf_mask = GENERAL_BUF_SIZE - 1;
 
 	while (phys_addr != phys_end + 1) {
 		unsigned long e = phys_end;
 	
+		printf(">>>>%lx\n", phys_addr);
+
 		if ((phys_addr & 0x00300000) == 0) {
 			//we're in ROM area - split into Sectors
 			if ((phys_addr & ~flash_mask) != (e & ~flash_mask)) {
@@ -341,7 +341,7 @@ int main(void) {
 	while (1) {
 		putc('\n', stdout);
 		putc(':', stdout);
-		if (rdline(general_buf, sizeof(general_buf))) {
+		if (rdline(general_buf, GENERAL_BUF_SIZE)) {
 
 			char *p = (char *)general_buf;
 

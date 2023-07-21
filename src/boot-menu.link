@@ -6,4 +6,6 @@ section .text.startup
 section .data
 section	.bss
 section .vectors load 0x37F0
+section buffers load 0x3800
+section stack high 0xE00
 entry start
