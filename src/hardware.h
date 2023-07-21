@@ -3,7 +3,7 @@
 #define SBC09_MMU0	0xFE10
 #define SBC09_MMU1	0xFE20
 
-#define mmu_16(x) (((unsigned char *)SBC09_MMU0)[x])
+#define mmu_16(x) (((volatile unsigned char volatile *)SBC09_MMU0)[x])
 
 #define MMU_SEL_ROM		0x00
 #define MMU_SEL_EXT 	0x40
