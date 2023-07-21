@@ -2,7 +2,7 @@
 #define __MEMMAP_H__
 
 //R_WINDOW the cpu address of the "window" used for accessing buffer/flash/ram
-#define R_WINDOW ((volatile unsigned char*)0x8000)
+#define R_WINDOW ((volatile unsigned char volatile *)0x8000)
 
 //MMU index of the window
 #define MMU_IX_WINDOW 2
