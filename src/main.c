@@ -9,6 +9,7 @@
 #include "memw.h"
 #include "srec.h"
 #include "boot.h"
+#include "rdline.h"
 
 extern int default_vectors;
 
@@ -227,10 +228,11 @@ void dump(const char *p) {
 void info(void) {
 
 	if (!detected_flash_type) {
-		fputs("**WARNING** Flash rom type not recognized default to 64K*7", stdout);
+		printf("**WARNING** Flash rom type not recognized default to 64K*7 : %02x/%02x\nDefaulting to", flash_det_mid, flash_det_did);
 	} else {
-		printf("Flash ROM:\t%12s\nID:\t\t%x/%x\nSize:\t\t%dx%x=%dKB\n",  current_flash_type->name, current_flash_type->manu_id, current_flash_type->dev_id, current_flash_type->sec_size, current_flash_type->n_secs, current_flash_type->sec_size * current_flash_type->n_secs );
+		printf("Detected");
 	}
+	printf(" ROM:\t%12s\nID:\t\t%x/%x\nSize:\t\t%dx%x=%dKB\n",  current_flash_type->name, current_flash_type->manu_id, current_flash_type->dev_id, current_flash_type->sec_size, current_flash_type->n_secs, current_flash_type->sec_size * current_flash_type->n_secs );
 
 
 	membuf_info();
@@ -248,8 +250,9 @@ int main(void) {
 	info();
 
 	while (1) {
+		putc('\n', stdout);
 		putc(':', stdout);
-		if (fgets(general_buf, sizeof(general_buf), stdin)) {
+		if (rdline(general_buf, sizeof(general_buf))) {
 
 			char *p = (char *)general_buf;
 
