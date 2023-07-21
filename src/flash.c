@@ -3,13 +3,16 @@
 #include "memmap.h"
 #include "hardware.h"
 
-#define R_555 R_WINDOW[0x555]
-#define R_2AA R_WINDOW[0x2AA]
+#define R_555 R_WINDOW[0x1555]
+#define R_2AA R_WINDOW[0x2AAA]
 #define R_CMD_AUTO 0x90
 #define R_CMD_AUTO_MID 0x00
 #define R_CMD_AUTO_DID 0x01
 #define R_CMD_EXIT 0xF0
 #define R_CMD_PRGBYTE 0xA0
+
+unsigned char flash_det_mid;
+unsigned char flash_det_did;
 
 const t_flash_def *detected_flash_type;
 const t_flash_def *current_flash_type;
@@ -59,27 +62,27 @@ const t_flash_def * flash_getdef(unsigned int mid, unsigned int did) {
 }
 
 void flash_cmd(unsigned char cmd) {
+	mmu_16(MMU_IX_WINDOW) = MMU_SEL_ROM + 1;
 	R_555 = 0xAA;
+	mmu_16(MMU_IX_WINDOW) = MMU_SEL_ROM + 0;
 	R_2AA = 0x55;
+	mmu_16(MMU_IX_WINDOW) = MMU_SEL_ROM + 1;
 	R_555 = cmd;
 }
 
 void flash_init() {
 
-	mmu_16(MMU_IX_WINDOW) = MMU_SEL_ROM + 0;
-
-	unsigned char mid;
-	unsigned char did;
 
 	// unlock device codes
 	flash_cmd(R_CMD_AUTO);
-	mid = R_WINDOW[R_CMD_AUTO_MID];
-	did = R_WINDOW[R_CMD_AUTO_DID];
+	mmu_16(MMU_IX_WINDOW) = MMU_SEL_ROM + 0;
+	flash_det_mid = R_WINDOW[R_CMD_AUTO_MID];
+	flash_det_did = R_WINDOW[R_CMD_AUTO_DID];
 
 	// exit device codes
 	flash_cmd(R_CMD_EXIT);
 
-	detected_flash_type = flash_getdef(mid, did);
+	detected_flash_type = flash_getdef(flash_det_mid, flash_det_did);
 	current_flash_type = (detected_flash_type == NULL) ? &romtypes[0] : detected_flash_type;
 }
 
@@ -88,11 +91,11 @@ extern void flash_write(unsigned long phys_addr, const void *buf, unsigned int l
 	unsigned char *p = (unsigned char *)buf;
 	unsigned volatile char *off = (unsigned char *)(R_WINDOW + (phys_addr & 0x3FFF));
 	unsigned char ix = (phys_addr >> 14);
-	mmu_16(MMU_IX_WINDOW) = ix;		
 
 	while (len) {
 		//start programming sequence
 		flash_cmd(R_CMD_PRGBYTE);
+		mmu_16(MMU_IX_WINDOW) = ix;		
 		unsigned char c = *p++;
 		*off = c;
 		while (*off != *off) ;
