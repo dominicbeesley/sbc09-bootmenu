@@ -40,15 +40,15 @@ main:	orcc	#$50		; ensure interrupts off
 
 	ldb	#%10111111	; top of RAM
 	stb	$FE12		; 8000 mapping
-	stb	$FE11		; 0000 mapping
 	ldb	$100		; our own MMU index
-	stb 	$FE10		; map in to bottom blocks
+	stb 	$FE11		; map ROM image in at 4000
 
-	ldx 	#$4000		; length	upto FC00
-	ldd	#$0000
+	ldx 	#$4000		
+	ldd	#$4000
 	pshs 	D,X
 	ldx	#$8000
 	jsr	_memcpy		; copy ourselves to top of RAM
+	leas	4,S
 
 	ldb	#%10111111	; top of RAM read / write!
 	stb	$FE13		; C000 mapping we will continue to run from there!?!?
