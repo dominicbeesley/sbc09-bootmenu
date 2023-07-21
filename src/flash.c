@@ -96,12 +96,16 @@ extern void flash_write(unsigned long phys_addr, const void *buf, unsigned int l
 	unsigned char ix = (phys_addr >> 14);
 
 	while (len) {
+		__asm("orcc #$50");
+
 		//start programming sequence
 		flash_cmd(R_CMD_PRGBYTE);
 		mmu_16(MMU_IX_WINDOW) = ix;		
 		unsigned char c = *p++;
 		*off = c;
 		while (*off != *off) ;
+
+		__asm("andcc #$AF");
 
 		off++;
 		len--;
@@ -111,15 +115,21 @@ extern void flash_write(unsigned long phys_addr, const void *buf, unsigned int l
 
 void flash_erase_chip(void) {
 	
+	__asm("orcc #$50");
+
 	flash_cmd(R_CMD_ERASE);
 	flash_cmd(R_CMD_ERASE_CHIP);
 
 	while (*R_WINDOW != *R_WINDOW) ;
 
+	__asm("andcc #$AF");
+
 	
 }
 
 void flash_erase_sector(unsigned long phys_addr) {
+
+	__asm("orcc #$50");
 
 	flash_cmd(R_CMD_ERASE);
 
@@ -128,9 +138,11 @@ void flash_erase_sector(unsigned long phys_addr) {
 	mmu_16(MMU_IX_WINDOW) = MMU_SEL_ROM + 0;
 	R_2AA = 0x55;
 	mmu_16(MMU_IX_WINDOW) = (phys_addr >> 14);
-	R_555 = R_CMD_ERASE_SECTOR;
+	*((volatile unsigned char *)(R_WINDOW + (phys_addr & 0x3FFF & ((1024 * current_flash_type->sec_size)-1)))) = R_CMD_ERASE_SECTOR;
 
-	unsigned long flash_mask = (current_flash_type->sec_size * 1024) - 1;
+	while (*R_WINDOW != *R_WINDOW) ;
+
+	__asm("andcc #$AF");
 
 }
 
