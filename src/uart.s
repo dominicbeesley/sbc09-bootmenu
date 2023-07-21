@@ -61,6 +61,10 @@ MMU_16K
         ; ROM/MOS slots will get sorted later
 		jmp	MMU_ENA
 MMU_BOOT
+	; assume that this is either a cold boot (in which case the stack is in low RAM)
+	; or we're being booted from another instance 
+                lda     #%10000000                                ; 0000-3fff -> ram block 0
+                sta     SBC09_MMU0 + 0
 	; B contains the MOS slot that we're running from
 		stb	SBC09_MMU0 + 3
 
@@ -88,6 +92,7 @@ _uart_readc:
 		sta	SBC09_UART_OPRSET	; assert RTS
 @s2:
    	ENDIF
+   		clra
    		tfr	D,X
       		rts
 
