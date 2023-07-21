@@ -9,10 +9,14 @@ export CROSS_CCOPTS=-std=c99 -c -Wall -Os -msoft-reg-count=0 -mfar-stack-param -
 
 
 OBJS=crt0 commonmem main uart stdlib stdlib_s stdio string ctype crc16 membuf memw srec flash boot
-
 B_OBJS=$(addprefix $(BUILD)/, $(addsuffix .o, $(OBJS)))
 
+OBJS_R=crt0_rom commonmem main uart stdlib stdlib_s stdio string ctype crc16 membuf memw srec flash boot
+B_OBJS_R=$(addprefix $(BUILD)/, $(addsuffix .o, $(OBJS_R)))
+
 X:=$(shell mkdir -p $(BUILD))
+
+all: $(BUILD)/boot-menu.srec $(BUILD)/boot-menu-rom.srec
 
 $(BUILD)/%.o: %.c
 	$(CROSS_CC) $(CROSS_CCOPTS) -o $@ $<
@@ -22,8 +26,11 @@ $(BUILD)/%.o: %.s
 
 
 $(BUILD)/boot-menu.srec: $(B_OBJS)
-	$(CROSS_LD) -o $@ -Map=$(patsubst %.srec,%.map,$@) --script=boot-menu.link --oformat=srec -L/usr/lib/gcc/m6809-unknown/4.6.4/ -lgcc $(B_OBJS) 
+	$(CROSS_LD) -o $@ -Map=$(patsubst %.srec,%.map,$@) --script=boot-menu.link --oformat=srec -L/usr/lib/gcc/m6809-unknown/4.6.4/ -lgcc $^
 	cat ../basic/runme.txt $@ > $(patsubst %.srec,%.run.srec, $@)
+
+$(BUILD)/boot-menu-rom.srec: $(B_OBJS_R)
+	$(CROSS_LD) -o $@ -Map=$(patsubst %.srec,%.map,$@) --script=boot-menu-rom.link --oformat=srec -L/usr/lib/gcc/m6809-unknown/4.6.4/ -lgcc $^
 
 clean:
 	-rm $(BUILD)/boot-menu.run.srec

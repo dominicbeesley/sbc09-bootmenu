@@ -8,6 +8,7 @@
 #include "membuf.h"
 #include "memw.h"
 #include "srec.h"
+#include "boot.h"
 
 extern int default_vectors;
 
@@ -236,21 +237,6 @@ void info(void) {
 }
 
 int main(void) {
-
-	// setup channel A of UART for 115200 and 16K MMU enabled
-	uart_init();
-
-	// map topmost RAM block as read/write at top 8000 and ready it with vectors etc, 
-	// we treat this as our own private workspace
-	// first map in at 8000 and setup vectors
-	mmu_16(MMU_IX_WINDOW) = MMU_SEL_RAM | MMU_MEM_MAX;
-	memcpy((void *)((VECTOR_LOC & 0x3FFF) | 0x8000), &default_vectors, 16);
-	// and now map it in at C000
-	mmu_16(MMU_IX_MOS) = MMU_SEL_RAM_RO | MMU_MEM_MAX;
-
-	//enable interrupts
-	__asm("\tandcc	#0xAF");
-
 
 	puts("\n\nSBC09 - Bootloader\n====================\n");
 	// check type of flash rom present

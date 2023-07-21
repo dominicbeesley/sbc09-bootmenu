@@ -16,12 +16,16 @@
 	;; exported symbols
 	.globl	start
 
-	;; startup code at offset 0
+
+	;; exported symbols
+	.globl	start
+
 	.area 	.start
-start:  jmp	main
+	; if we enter here then we've been loaded to RAM for run, copy ourselved to topmost block
+	; from wherever we are now (assume E00 - 3FFF)
+start:  	jmp	main
 
-	.area 	.text
-
+	.area	.vectors
 _default_vectors:
 	fdb	_default_ill0
 	fdb	_default_swi3
@@ -32,9 +36,13 @@ _default_vectors:
 	fdb	_default_nmi
 	fdb	_default_res
 
+	.area 	.text
 
 main:	orcc 	#0x50		; interrupts definitely off
-	lds 	#kstack_top
+	lds 	#$200		; small stack at 0..200 for now
+	ldb	#$FF
+
+	jsr	uart_init
 
 	;; zero out kernel's bss section
 	ldx 	#__sectionbase_.bss__
@@ -43,6 +51,21 @@ bss_wipe:
 	clr 	,x+
 	leay 	-1,y
 	bne 	bss_wipe
+
+	;; we will continue to run from our present location
+	
+	; page "ourselves" into C000 so that the vectors show there
+	; we assume that we are running in logical low ram to E00 and
+	; that that is mapped to bottom of phys ram
+	lda 	#%10000000
+	sta	$FE13
+
+;	lds	#kstack_top
+	lds	#$E00		;TESTING TODO put back
+	
+	;; interrupts on
+	andcc	#0xAF
+
 
 	jsr 	_main
 
