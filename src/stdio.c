@@ -220,3 +220,5 @@ char *fgets(char * s, size_t n, FILE * stream)
  ERROR:
     return NULL;
 }
+
+int getchar(void) { return fgetc(stdin); }

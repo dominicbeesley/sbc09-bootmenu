@@ -10,6 +10,9 @@
 #define R_CMD_AUTO_DID 0x01
 #define R_CMD_EXIT 0xF0
 #define R_CMD_PRGBYTE 0xA0
+#define R_CMD_ERASE 0x80
+#define R_CMD_ERASE_CHIP 0x10
+#define R_CMD_ERASE_SECTOR 0x30
 
 unsigned char flash_det_mid;
 unsigned char flash_det_did;
@@ -104,3 +107,30 @@ extern void flash_write(unsigned long phys_addr, const void *buf, unsigned int l
 		len--;
 	}
 }
+
+
+void flash_erase_chip(void) {
+	
+	flash_cmd(R_CMD_ERASE);
+	flash_cmd(R_CMD_ERASE_CHIP);
+
+	while (*R_WINDOW != *R_WINDOW) ;
+
+	
+}
+
+void flash_erase_sector(unsigned long phys_addr) {
+
+	flash_cmd(R_CMD_ERASE);
+
+	mmu_16(MMU_IX_WINDOW) = MMU_SEL_ROM + 1;
+	R_555 = 0xAA;
+	mmu_16(MMU_IX_WINDOW) = MMU_SEL_ROM + 0;
+	R_2AA = 0x55;
+	mmu_16(MMU_IX_WINDOW) = (phys_addr >> 14);
+	R_555 = R_CMD_ERASE_SECTOR;
+
+	unsigned long flash_mask = (current_flash_type->sec_size * 1024) - 1;
+
+}
+

@@ -18,6 +18,9 @@ extern void flash_init();
 //assumes: - all in rom and in same 16k bank (already setup in memw.c)
 extern void flash_write(unsigned long phys_addr, const void *buf, unsigned int len);
 
+extern void flash_erase_chip(void);
+extern void flash_erase_sector(unsigned long phys_addr);
+
 extern unsigned char flash_det_mid;
 extern unsigned char flash_det_did;
 

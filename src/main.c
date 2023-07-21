@@ -13,6 +13,7 @@
 
 extern int default_vectors;
 
+// this must be a power of 2 in size
 unsigned char general_buf[1024];
 
 
@@ -179,6 +180,92 @@ ERROR:
 
 }
 
+int promptSure(const char *prompt) {
+	printf("\n%s?\n", prompt);
+	while (1) {
+		int c = getchar();
+		if (c == 'y' || c == 'Y') {
+			puts("YES");
+			return 1;
+		}
+		else if (c == 'n' || c == 'N') {
+			puts("NO");
+			return 0;
+		}
+	}
+}
+
+void erase(const char *p) {
+	unsigned long phys_addr;
+	unsigned int phys_end;
+	unsigned char plus = 0;
+
+	skip_spaces(&p);
+	if (*p == '!')
+	{
+		if (!promptSure("ERASE entire chip"))
+			return;
+		else {
+			flash_erase_chip();	
+			return;
+		}
+	}
+
+	if (gethex_ulong(&p, &phys_addr) < 0)
+		goto ERROR;
+
+	skip_spaces(&p);
+
+	if (*p == '+') 
+	{
+		plus = 1;
+		p++;
+	}
+
+	if (gethex_uint(&p, &phys_end) < 0)
+		goto ERROR;
+
+
+
+	if (plus)
+		phys_end += phys_addr-1;
+
+	// clear buffer
+	memset(general_buf, 0xFF, sizeof(general_buf));
+
+	unsigned long flash_mask = (current_flash_type->sec_size * 1024) - 1;
+	unsigned long buf_mask = (sizeof(general_buf)) - 1;
+
+	while (phys_addr != phys_end + 1) {
+		unsigned long e = phys_end;
+	
+		if ((phys_addr & 0x00300000) == 0) {
+			//we're in ROM area - split into Sectors
+			if ((phys_addr & ~flash_mask) != (e & ~flash_mask)) {
+				e = (phys_addr & ~flash_mask) | flash_mask;
+			}
+			flash_erase_sector(phys_addr);
+		} else {
+			//we're in RAM area - split into general_buf sized chunks
+			if ((phys_addr & ~buf_mask) != (e & ~buf_mask)) {
+				e = (phys_addr & ~buf_mask) | buf_mask;
+			}	
+			memw_in(general_buf, phys_addr, e - phys_addr + 1);
+		}
+
+		
+
+		phys_addr = e + 1;
+	}
+
+	return;
+
+ERROR:
+	printf ("Bad command: E <phys_addr>[+<len>|<phys_end>] : !%s \n", p);
+
+}
+
+
 unsigned int dump_addr = 0;
 void dump(const char *p) {
 	unsigned int start;
@@ -269,6 +356,9 @@ int main(void) {
 				break;
 			case 'D':
 				dump(p);
+				break;
+			case 'E':
+				erase(p);
 				break;
 			case 'S':
 				srec_read_to_membuf(p);

@@ -37,6 +37,8 @@ extern char *fgets(char *buf, size_t num, FILE *stream);
 extern int putc(int c, FILE *stream);
 extern int puts(const char *str);
 
+extern int getchar(void);
+
 #define EOF -1
 
 #endif
