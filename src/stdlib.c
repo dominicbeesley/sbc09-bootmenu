@@ -1,24 +1,5 @@
 #include <stdlib.h>
 
-void * memset ( void * ptr, int value, size_t num )
-{
-	unsigned char *p = (unsigned char *)ptr;
-	while (num--) {
-		*p++=value;
-	}
-	return ptr;
-}
-
-void *memcpy(void *dest, const void * src, size_t num) {
-	
-	void *odest = dest;
-
-	while (num--) {
-		*(char *)dest++	 = *(char *)src++;
-	}
-
-	return odest;
-}
 
 char digit(unsigned int v, unsigned int base) {
 	unsigned char d = v % base;

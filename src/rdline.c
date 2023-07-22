@@ -41,6 +41,7 @@ extern char *rdline(char * buf, int maxlen) {
 			}
 		}
 	}
+	putchar('\n');
 	buf[l] = 0;
 	return buf;	
 

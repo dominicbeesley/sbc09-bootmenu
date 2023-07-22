@@ -31,6 +31,13 @@ int fputc(int ch, FILE *stream) {
     return uart_writec(ch);
 }
 
+int putchar(int c) {
+    if (uart_writec(c) < 0)
+        return -1;
+    else
+        return c;
+}
+
 int fputs(const char *str, FILE *stream) {
     char c;
     while ((c = *str++)) {

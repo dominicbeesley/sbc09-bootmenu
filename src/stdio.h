@@ -38,6 +38,7 @@ extern int putc(int c, FILE *stream);
 extern int puts(const char *str);
 
 extern int getchar(void);
+extern int putchar(int c);
 
 #define EOF -1
 
