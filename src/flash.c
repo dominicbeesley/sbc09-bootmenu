@@ -138,7 +138,7 @@ void flash_erase_sector(unsigned long phys_addr) {
 	mmu_16(MMU_IX_WINDOW) = MMU_SEL_ROM + 0;
 	R_2AA = 0x55;
 	mmu_16(MMU_IX_WINDOW) = (phys_addr >> 14);
-	*((volatile unsigned char *)(R_WINDOW + (phys_addr & 0x3FFF & ((1024 * current_flash_type->sec_size)-1)))) = R_CMD_ERASE_SECTOR;
+	*((volatile unsigned char *)(R_WINDOW + (phys_addr & 0x3FFF & ~((1024 * current_flash_type->sec_size)-1)))) = R_CMD_ERASE_SECTOR;
 
 	while (*R_WINDOW != *R_WINDOW) ;
 
