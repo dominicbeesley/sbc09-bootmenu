@@ -18,6 +18,7 @@
 	.globl   _general_buf
 	.globl	_uart_in_buf
 	.globl	_uart_out_buf
+	.globl   _SBC09MOS
 
 
 	.area 	.start
@@ -37,6 +38,9 @@ _default_vectors:
 	fdb	_default_res
 
 	.area 	.text
+
+_SBC09MOS:
+	fcc	"SBC09MOS"
 
 main:	orcc 	#0x50		; interrupts definitely off
 	lds 	#$200		; small stack at 0..200 for now

@@ -321,10 +321,32 @@ void info(void) {
 	} else {
 		printf("Detected");
 	}
-	printf(" ROM:\t%12s\nID:\t\t%x/%x\nSize:\t\t%dx%x=%dKB\n",  current_flash_type->name, current_flash_type->manu_id, current_flash_type->dev_id, current_flash_type->sec_size, current_flash_type->n_secs, current_flash_type->sec_size * current_flash_type->n_secs );
+	printf(" ROM:\t%s\nID:\t\t%x/%x\nSize:\t\t%dx%d=%dKB\n",  current_flash_type->name, current_flash_type->manu_id, current_flash_type->dev_id, current_flash_type->sec_size, current_flash_type->n_secs, current_flash_type->sec_size * current_flash_type->n_secs );
 
 
 	membuf_info();
+}
+
+extern const char SBC09MOS [];
+
+void cat_slot(unsigned long ptr) {
+	//check for an SBC09MOS entry
+	memw_out(general_buf, ptr+0x3802, 8);
+	if (!memcmp(general_buf, SBC09MOS, 8)) {
+		printf("MOS  : %06lX : !%lX\n", ptr, ptr + 0x3800);
+	}
+}
+
+void cat(const char *p) {
+
+	unsigned long ptr = 0;
+	int flash_slots = (current_flash_type->sec_size * current_flash_type->n_secs) >> 4;
+	for (int i = 0; i < flash_slots; i++) {
+		cat_slot(ptr);
+
+		ptr += 0x4000;
+	}
+
 }
 
 int main(void) {
@@ -339,7 +361,6 @@ int main(void) {
 	info();
 
 	while (1) {
-		putc('\n', stdout);
 		putc(':', stdout);
 		if (rdline(general_buf, GENERAL_BUF_SIZE)) {
 
@@ -374,6 +395,9 @@ int main(void) {
 				break;
 			case 'R':
 				read_mem(p);
+				break;			
+			case '.':
+				cat(p);
 				break;			
 			default:
 				printf("\nUnrecognized command %c %x\n", (int)cmd, (int)cmd);

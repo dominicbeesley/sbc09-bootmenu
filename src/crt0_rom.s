@@ -17,7 +17,7 @@
 	.globl   _general_buf
 	.globl	_uart_in_buf
 	.globl	_uart_out_buf
-
+	.globl   _SBC09MOS
 
 	.area 	.vectors
 
@@ -31,6 +31,7 @@ _default_vectors:
 	fdb	_default_nmi
 	fdb	_default_res	
 	fdb	_default_boot	; special entry vector to call self
+_SBC09MOS:
 	fcc	"SBC09MOS"
 
 	.area 	.text
