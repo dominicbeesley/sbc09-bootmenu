@@ -14,16 +14,18 @@ and inspect it.
 
 # Starting the monitor
 
-Currently the only way to run the monitor is to load it from BASIC. The
-boot-menu.run.srec script should be copied to the terminal window when running
-the mini-mos BASIC. This will bootstrap a small machine code srec-loader
-which in turn will load the monitor and run it. W
+If you are running a version of BASIC you may run the monitor as follows
 
-When started in this manner the monitor runs in the the first 32K of logical
-memory which is assumed to be mapped as the first 32K of physical memory.
+The boot-menu.run.srec script should be copied to the terminal window when
+at the BASIC prompt. This will bootstrap a small machine code srec-loader
+which in turn will load the monitor and run it. 
 
-The monitor also uses the top 80K of physical memory for workspace and buffer
-memory.
+When running in this manner the monitor will be load at logical 0E00-3FFF
+and will then self-relocate to the topmost block of RAM. The top most block
+of RAM will then be mapped to the C000-FFFF slot and the monitor will run
+from there. 
+
+The monitor uses the top 80K of RAM for code, workspace and buffer memory.
 
 # Commands
 
@@ -49,10 +51,8 @@ multiple of 16 is supplied the number of bytes shown is rounded down.
 
 	E !|<phys address>[+<len>|<end address>]
 
-The EEPROM will be erased in its entirety (!) or the sectors which in the
-range specified will be erased. If only a single address is specified then
-the sector containing that address will be erased.
-
+The EEPROM will be erased in its entirety (!) or the sectors which are in the
+range specified will be erased. 
 
 ## S : SREC load
 
@@ -84,10 +84,38 @@ If the buffer would overflow then the buffer is wrapped
 
 # Examples
 
+## Install boot menu as the default at reset
 
-# To erase and re-load the boot ROMs at 00 0000 - 00 7FFF.
+!!! You should check that everything appears to have worked before resetting 
+the machine as errors in this process will be unrecoverable and require the
+Flash Chip to be removed and reprogrammed!!!
 
-## Assuming a 39xxxx Flash with 4K sectors
+First follow the instructions in the [Starting the Monitor](#startingthemonitor)
+section to load the monitor then
+
+	E 4000+4000
+
+This will clear the flash ROM at 00 4000.
+
+Note: if your sector Flash's sector size is greater than 4000 this may have
+unintended consequences. You may need to follow the instructions in 
+[Preserving adjacent Flash](#preservingadjacentflash)
+
+Clear the buffer
+
+	C
+
+Paste the boot-menu-rom.srec file into the terminal this will load in the
+buffer region C000-FFFF
+
+Write the buffer to the hard-reset flash sector at 00 4000
+
+	W 4000 C000+4000
+
+
+## To erase and re-load the BASIC ROMs at 00 0000 - 00 7FFF.
+
+### Assuming a 39xxxx Flash with 4K sectors
 
 1) Clear the buffer
 
@@ -111,7 +139,7 @@ If the buffer would overflow then the buffer is wrapped
 
 	W 0 8000+4000
 
-## Assuming a 29xxxx Flash with 64K sectors
+### Assuming a 29xxxx Flash with 64K sectors
 
 1) Clear the buffer
 
@@ -119,14 +147,16 @@ If the buffer would overflow then the buffer is wrapped
 
 2) Read the existing data at 00 8000 - 00 FFFF
 
-	R 008000 0+4000
+	R 008000 0+8000
 
 Note: this places the data at the start of the buffer, later we will use the
 wrap feature to write the data back in the correct order
 
 3) Erase the 64K sector
 
-	E 0
+	E 0+10000
+
+Note: this will also erase any ROM's loaded at 
 
 4) Read the SREC data to buffer (this assumes the ROM is based at 8000)
 
@@ -140,11 +170,9 @@ wrap feature to write the data back in the correct order
 
 6) Write to the EEPROM
 
-	W 0 8000+8000
+	W 0 8000+10000
 
 Note: this will again wrap around but this time the data will be written
 back with the loaded ROMS at 00 0000 and the retained data from the EEPROM
 at 00 8000
-
-
 
