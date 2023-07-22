@@ -33,6 +33,7 @@ _default_vectors:
 	fdb	_default_boot	; special entry vector to call self
 _SBC09MOS:
 	fcc	"SBC09MOS"
+	fcn	"Boot-loader"
 
 	.area 	.text
 

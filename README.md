@@ -36,6 +36,18 @@ The monitor uses the top 80K of RAM for code, workspace and buffer memory.
 This operation will show the range in the buffer that contains active data
 (if any) and will perform a CRC16 check some over that range.
 
+## . : Catalogue operator
+
+	.
+
+The Flash ROM and RAM excluding the bottom 32K and top 80K will be scanned in 
+16K chunks for "ROM"s that look like:
+
+- BBC Micro Sideways ROM - byte offset 7 points at "(C)" copyright string
+- SBC09MOS - offset 3802..3809 contains string "SBC09MOS"
+
+TODO: Show examples
+
 ## D : Dump buffer
 
 	D [<buffer address>]

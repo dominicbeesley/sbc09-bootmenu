@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <ctype.h>
+#include <string.h>
 #include "uart.h"
 #include "hardware.h"
 #include "memmap.h"
@@ -14,6 +15,7 @@
 
 extern int default_vectors;
 
+unsigned char ram_limit = 0; // this is an mmu index in the form %10xxxxxx when xxxxxx contains the highest RAM block
 
 int nyb(char c) {
 	if (c >= '0' && c <= '9')
@@ -316,6 +318,8 @@ void dump(const char *p) {
 
 void info(void) {
 
+	printf("RAM:\t\t%dKB\n", 16*(1+(ram_limit & 0x3F)));
+
 	if (!detected_flash_type) {
 		printf("**WARNING** Flash rom type not recognized default to 64K*7 : %02x/%02x\nDefaulting to", flash_det_mid, flash_det_did);
 	} else {
@@ -331,9 +335,9 @@ extern const char SBC09MOS [];
 
 void cat_slot(unsigned long ptr) {
 	//check for an SBC09MOS entry
-	memw_out(general_buf, ptr+0x3802, 8);
-	if (!memcmp(general_buf, SBC09MOS, 8)) {
-		printf("MOS  : %06lX : !%lX\n", ptr, ptr + 0x3800);
+	memw_out(general_buf, ptr+0x3800, 64);
+	if (!memcmp(general_buf+2, SBC09MOS, 8)) {
+		printf("MOS  : %06lX : !%lX : %s\n", ptr, ptr + 0x3800, general_buf+10);
 	}
 }
 
@@ -347,9 +351,49 @@ void cat(const char *p) {
 		ptr += 0x4000;
 	}
 
+
+	ptr = 0x308000;
+	int ram_slots = (ram_limit & 0x3F) + 1 - 6;
+	for (int i = 0; i < ram_slots; i++) {
+		cat_slot(ptr);
+
+		ptr += 0x4000;
+	}
+
+}
+
+void ram_detect() {
+	//detect RAM limit
+	mmu_16(2) = 0xBF;		// top of ram - possibly an image
+	unsigned char org = R_WINDOW[0x3FFF];
+
+	ram_limit = 0xBF;
+	while (ram_limit >= 0x83) {
+		unsigned char n = 0x80 | ((ram_limit & 0x3F) >> 1);
+		
+		mmu_16(2) = 0xBF;
+		R_WINDOW[0x3FFF] = 0xAA;
+		mmu_16(2) = n;
+		if (R_WINDOW[0x3FFF] != 0xAA)
+			break;
+
+		mmu_16(2) = 0xBF;	
+		R_WINDOW[0x3FFF] = 0x55;
+		mmu_16(2) = n;
+		if (R_WINDOW[0x3FFF] != 0x55)
+			break;
+
+		ram_limit = n;
+	}
+
+
+	R_WINDOW[0x3FFF] = org;
 }
 
 int main(void) {
+
+	ram_detect();
+
 
 	puts("\n\nSBC09 - Bootloader\n====================\n");
 	// check type of flash rom present
