@@ -337,7 +337,16 @@ void cat_slot(unsigned long ptr) {
 	//check for an SBC09MOS entry
 	memw_out(general_buf, ptr+0x3800, 64);
 	if (!memcmp(general_buf+2, SBC09MOS, 8)) {
-		printf("MOS  : %06lX : !%lX : %s\n", ptr, ptr + 0x3800, general_buf+10);
+		printf("MOS  : %06lX : !%-6lX : %20s\n", ptr, ptr + 0x3800, general_buf+10);
+		return;
+	}
+	memw_out(general_buf, ptr+6, 2);
+	unsigned char rom_type = general_buf[0];
+	unsigned char copy_offs = general_buf[1];
+	memw_out(general_buf, ptr+copy_offs, 4);
+	if (!memcmp(general_buf, "\0(C)", 4)) {
+		memw_out(general_buf, ptr+9, copy_offs-8);
+		printf("ROM  : %06lX : %02X : %25s\n", ptr, rom_type, general_buf);
 	}
 }
 
