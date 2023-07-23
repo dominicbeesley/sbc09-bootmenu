@@ -93,6 +93,11 @@ int vfprintf(FILE *file, char const *fmt, va_list arg) {
             int fmt_long = 0;
             int pad = -1;
             int pad2 = 0;
+            int b4 = 1;
+            if (*fmt == '-') {
+                b4 = 0;
+                fmt++;
+            }
             char padch = ' ';
             do {
                 ch = *fmt++;
@@ -129,8 +134,18 @@ int vfprintf(FILE *file, char const *fmt, va_list arg) {
                 /* %s: print out a string       */
                 case 's':
                     string_temp = va_arg(arg, char *);
-                    length += mpad(pad, padch, buffer);
-                    fputs(string_temp, file);
+                    if (b4)
+                        length += mpad(pad, padch, string_temp);
+                    const char *p = string_temp;
+                    int n = 0;
+                    while (*p && (pad == -1 || n < pad ))
+                    {
+                        fputc(*p++, file);
+                        n++;
+                    }
+                    length += n;
+                    if (!b4)
+                        length += mpad(pad, padch, string_temp);
                     break;
 
                 /* %d: print out an int         */
@@ -143,8 +158,11 @@ int vfprintf(FILE *file, char const *fmt, va_list arg) {
                         int_temp = va_arg(arg, int);
                         itoa(int_temp, buffer, 10);
                     }
-                    length += mpad(pad, padch, buffer);
+                    if (b4)
+                        length += mpad(pad, padch, buffer);
                     fputs(buffer, file);
+                    if (!b4)
+                        length += mpad(pad, padch, buffer);
                     break;
 
                 /* %x: print out an int in hex  */
@@ -162,8 +180,11 @@ int vfprintf(FILE *file, char const *fmt, va_list arg) {
                         char *p = buffer;
                         while ((*p = tolower(*p))) p++;
                     }
-                    length += mpad(pad, padch, buffer);
+                    if (b4)
+                        length += mpad(pad, padch, buffer);
                     fputs(buffer, file);
+                    if (!b4)
+                        length += mpad(pad, padch, buffer);
                     break;
                 default:
                     fmt--; // step back on mistake, not sure if that's correct but it save crapping out if % is last char of format string
