@@ -12,6 +12,32 @@ physical RAM) and may be written to anywhere in the "physical" memory map.
 It is also possible to read data from the physical memory map into the buffer
 and inspect it.
 
+# Building 
+
+Run the top-level makefile 
+
+	make all
+
+This produces several outputs:
+
+
+- build/boot-menu-rom.bin - this is suitable for blowing to an EEPROM at offset 
+  4000 with eeprom software that doesn't understand SREC files (i.e. XGpro)
+- build/boot-menu-rom.srec - an srec version of the above that can be loaded
+  using the monitor and blow to rom as described below
+- build/boot-menu.run.srec - this is a self-bootstrapping version of the loader
+  that can be run from BASIC. This bootstraps itself with a small BASIC program
+  and runs the monitor from memory.
+
+# Line endings
+
+The monitor program is designed to accept BBC-BASIC style input and line-endings
+i.e. each line should end with \<CR\>. However, it will also accept and silently
+discard \<LF\>
+
+The monitor program terminates output lines with a BBC-Micro like \n\r line 
+ending.
+
 # Starting the monitor
 
 If you are running a version of BASIC you may run the monitor as follows
@@ -93,6 +119,14 @@ permanently to the EEPROM. If the EEPROM has not been previously erased
 Lengths > 64K are truncated
 
 If the buffer would overflow then the buffer is wrapped
+
+NOTE: The write command does NOT erase the EEPROM automatically
+all bytes to be written must contain FF before writing or the
+resulting data will be undefined. Use the E command before writing. This is
+a feature not a bug to cope with the case where not a full sector will be
+written at a time.
+
+NOTE: The current version of the W command does not verify writes.
 
 # Examples
 

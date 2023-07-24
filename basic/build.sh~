@@ -1,5 +1,0 @@
-#!/usr/bin/env bash
-
-asm6809 -S -o srec-2.srec srec-2.asm
-
-cat srec-run.bas srec-2.srec > runme.txt

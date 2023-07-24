@@ -1,9 +1,13 @@
 #!/bin/env perl
 
+# A script to convert 16-bit srec to 6809 basic pokes/calls
+# line endings are bbc-style <CR>
+
 use strict;
 use List::Util qw/sum/;
 
-# A script to convert 16-bit srec to 6809 basic pokes/calls
+binmode STDOUT;
+
 
 while (<>) {
 
@@ -48,15 +52,15 @@ while (<>) {
 					$addr = $addr + 1;					
 				}
 				if (length($l) > 200) {
-					print "$l\n";
+					print "$l\r";
 					$l = "";
 				}
 			}
 			if ($l ne "") {
-				print "$l\n";
+				print "$l\r";
 			}
 		} elsif ($cmd eq "9") {
-			printf "CALL &%X\n", $addr;
+			printf "CALL &%X\r", $addr;
 		}
 	} else {
 		die "Unrecognized line $l";

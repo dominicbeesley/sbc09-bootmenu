@@ -28,7 +28,10 @@ int fgetc(FILE *stream) {
 }
 
 int fputc(int ch, FILE *stream) {
-    return uart_writec(ch);
+    int r = uart_writec(ch);
+    if (ch == '\n')
+        uart_writec('\r');
+    return r;
 }
 
 int putchar(int c) {

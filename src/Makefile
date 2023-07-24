@@ -24,18 +24,29 @@ $(BUILD)/%.o: %.c
 $(BUILD)/%.o: %.s
 	$(CROSS_AS) $(CROSS_ASOPTS) -o $@ $<
 
+$(BUILD)/srec-2.bas:
+	$(MAKE) -C ../basic all
 
-$(BUILD)/boot-menu.srec: $(B_OBJS)
-	$(CROSS_LD) -o $@ -Map=$(patsubst %.srec,%.map,$@) --script=boot-menu.link --oformat=srec -L/usr/lib/gcc/m6809-unknown/4.6.4/ -lgcc $^
-	cat ../basic/runme.txt $@ > $(patsubst %.srec,%.run.srec, $@)
+$(BUILD)/boot-menu.srec: $(B_OBJS) $(BUILD)/srec-2.bas
+	$(CROSS_LD) -o $@ -Map=$(patsubst %.srec,%.map,$@) --script=boot-menu.link --oformat=srec -L/usr/lib/gcc/m6809-unknown/4.6.4/ -lgcc $(filter %.o, $^)
 	srec_cat $@ -offset -0xE00 -o $(basename $@).bin -binary
+	dos2unix $@
+	unix2mac $@
+	cat $(BUILD)/srec-2.bas $@ > $(patsubst %.srec,%.run.srec, $@)
 
 $(BUILD)/boot-menu-rom.srec: $(B_OBJS_R)
-	$(CROSS_LD) -o $@ -Map=$(patsubst %.srec,%.map,$@) --script=boot-menu-rom.link --oformat=srec -L/usr/lib/gcc/m6809-unknown/4.6.4/ -lgcc $^
+	$(CROSS_LD) -o $@ -Map=$(patsubst %.srec,%.map,$@) --script=boot-menu-rom.link --oformat=srec -L/usr/lib/gcc/m6809-unknown/4.6.4/ -lgcc $(filter %.o, $^)
 	srec_cat $@ -fill 0xFF 0xC000 0xFFFF -offset -0xC000 -o $(basename $@).bin -binary
+	dos2unix $@
+	unix2mac $@
 
 clean:
 	-rm $(BUILD)/boot-menu.run.srec
 	-rm $(BUILD)/boot-menu.srec
-	-rm $(B_OBJS)
+	-rm $(BUILD)/boot-menu.bin
+	-rm $(BUILD)/boot-menu.map
+	-rm $(BUILD)/boot-menu-rom.srec
+	-rm $(BUILD)/boot-menu-rom.bin
+	-rm $(BUILD)/boot-menu-rom.map
+	-rm $(B_OBJS) $(B_OBJS_R)
 	
