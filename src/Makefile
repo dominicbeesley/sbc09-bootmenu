@@ -36,7 +36,7 @@ $(BUILD)/boot-menu.srec: $(B_OBJS) $(BUILD)/srec-2.bas
 
 $(BUILD)/boot-menu-rom.srec: $(B_OBJS_R)
 	$(CROSS_LD) -o $@ -Map=$(patsubst %.srec,%.map,$@) --script=boot-menu-rom.link --oformat=srec -L/usr/lib/gcc/m6809-unknown/4.6.4/ -lgcc $(filter %.o, $^)
-	srec_cat $@ -fill 0xFF 0xC000 0xFFFF -offset -0xC000 -o $(basename $@).bin -binary
+	srec_cat $@ -fill 0xFF 0xC000 0x10000 -offset -0xC000 -o $(basename $@).bin -binary
 	dos2unix $@
 	unix2mac $@
 
