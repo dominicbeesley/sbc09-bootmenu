@@ -4,7 +4,7 @@
 
 	.area .text
 
-; extern void do_boot(unsigned int long phys_addr);
+; extern void do_boot(unsigned int long phys_addr, unsigned char warm);
 
 
 _do_boot:
@@ -24,6 +24,11 @@ _do_boot:
 	; page the bottom block of memory in at 8000
 	lda	#$80
 	sta	$FE12
+
+	; get warm boot flag from stack and store in low mem
+	lda	7,S
+	sta	$8100 + (dob_end - dob_rest)
+
 	; copy the rest of our code to a "safe" part of low memory ($100..) bottom of MOS stack
 	ldx	#dob_rest
 	ldy	#$8100
@@ -39,8 +44,9 @@ _do_boot:
 
 dob_rest:	
 	decb
-	sta	$FE12		; default 8000..BFFF to slot below MOS
+	stb	$FE12		; default 8000..BFFF to slot below MOS
 	incb
 	stb	$FE13		; poke the MOS register
+	lda	dob_end,PCR	; get back A saved above
 	jmp	[,U]
 dob_end:

@@ -69,7 +69,6 @@ bss_wipe:
 	;; interrupts on
 	andcc	#0xAF
 
-
 	jsr 	_main
 
 ;TEST

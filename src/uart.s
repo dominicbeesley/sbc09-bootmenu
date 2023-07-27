@@ -3,9 +3,12 @@
 
 	.globl	uart_init
 	.globl	_uart_readc
+	.globl  _uart_readc_nowait
 	.globl	_uart_writec
 	.globl  uart_writec_direct
 	.globl  IRQ_HANDLER
+	.globl  _l_time;
+	.globl  _uart_wait_100ms
 
 	.area .text
 
@@ -76,10 +79,18 @@ MMU_ENA
 	
 		rts
 
+_uart_readc_nowait:
+		lda	ubuf_rx_head
+		cmpa	ubuf_rx_tail
+		bne	readc2
+		ldx	#-1
+		rts
+
 _uart_readc:
 @l1:		lda	ubuf_rx_head
 		cmpa	ubuf_rx_tail
 		beq	@l1
+readc2:
 		ldx	#ubuf_rx+0x80
 		ldb	A,X
 		inc	ubuf_rx_head
@@ -117,6 +128,12 @@ uart_writec_direct:
 		beq	@lp
 		stb	SBC09_UART_THRA
 		clrb
+		rts
+
+_uart_wait_100ms:
+		lda	_l_time+3
+@l1:		cmpa	_l_time+3
+		beq	@l1
 		rts
 
 ;; *************************************************************
@@ -187,13 +204,13 @@ IRQ_TIMER
 		anda	#ISR_CTR		; Check the timer bit
 		beq	IRQ_EXIT
 		lda	SBC09_UART_STOPCT	; Clear the interrupt
-		inc	l_time			; Update the system clock
+		inc	_l_time+3		; Update the system clock
 		bne	IRQ_EXIT
-		inc	l_time+1
+		inc	_l_time+2
 		bne	IRQ_EXIT
-		inc	l_time+2
+		inc	_l_time+1
 		bne	IRQ_EXIT
-		inc	l_time+3
+		inc	_l_time+0
 
 IRQ_EXIT
       		rti
@@ -213,6 +230,6 @@ ubuf_rx_tail:		rmb 1
 ubuf_tx_head:		rmb 1
 ubuf_tx_tail:		rmb 1
 ubuf_escape_flag:	rmb 1
-l_time:			rmb 4
+_l_time:		rmb 4
 ubuff_xoff		rmb 1
 

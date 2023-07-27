@@ -41,6 +41,7 @@ main:	orcc	#$50		; ensure interrupts off
 	lds 	#$200		; assuming memory in low block is "MOS" ram, use the MOS stack area
 	; B contains the MMU index of the current MOS rom that we are running from
 	stb	$100		; cache the MOS slot #
+
 	jsr	uart_init	; B will be used here to set up the mapping
 
 	; map top of ram in to 8000 and copy ourselves to it 
@@ -50,7 +51,7 @@ main:	orcc	#$50		; ensure interrupts off
 	ldb	$100		; our own MMU index
 	stb 	$FE11		; map ROM image in at 4000
 
-	ldx 	#$4000		
+	ldx 	#$4000-8		; leave top eight bytes for reboot info		
 	ldd	#$4000
 	pshs 	D,X
 	ldx	#$8000
@@ -75,6 +76,14 @@ bss_wipe:
 	bne 	bss_wipe
 
 	lds	#_kstack_top
+
+	lda	$100
+	ldb	#0
+	cmpa 	#1
+	bne	@notboo
+	incb
+@notboo:	stb	_iAmBootRom	
+
 
 	;; interrupts on
 	andcc	#0xAF

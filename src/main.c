@@ -14,8 +14,10 @@
 #include "commonmem.h"
 
 extern int default_vectors;
+unsigned char iAmBootRom = 0;
 
 unsigned char ram_limit = 0; // this is an mmu index in the form %10xxxxxx when xxxxxx contains the highest RAM block
+
 
 int nyb(char c) {
 	if (c >= '0' && c <= '9')
@@ -68,15 +70,37 @@ int gethex_uint(const char **p, unsigned int *ret) {
 	return val;
 }
 
+void set_reboot(unsigned long phys_addr) {
+	*R_REBOOT = phys_addr;
+	*R_REBOOT_I = ~phys_addr;
+}
+
 void boot(const char *p) {
 	unsigned long phys_addr;
+	unsigned char warm = 0;
+
 	if (gethex_ulong(&p, &phys_addr) < 0)
 		goto ERROR;
 
-	do_boot(phys_addr);
+	while (*p)
+	{
+		skip_spaces(&p);
+		if (toupper(*p) == 'W') {
+			warm = 1;
+		}
+		else if (*p == '!') {
+			set_reboot(phys_addr);
+		}
+		else {
+			goto ERROR;
+		}
+		p++;
+	}
+
+	do_boot(phys_addr, warm);
 
 ERROR:
-	printf ("Bad command: ! <phys_addr> : !%s \n", p);
+	printf ("Bad command: ! <phys_addr> [W|!] : !%s \n", p);
 
 }
 
@@ -395,16 +419,41 @@ void ram_detect() {
 		ram_limit = n;
 	}
 
-
+	mmu_16(2) = 0xBF;		// top of ram - possibly an image
 	R_WINDOW[0x3FFF] = org;
 }
 
+
 int main(void) {
+
+	puts("\n\nSBC09 - Bootloader\n====================\n");
+
+	unsigned long boot_addr = *R_REBOOT;
+	if (boot_addr != 0 && boot_addr == ~*R_REBOOT_I) {
+		printf("\n\n---Reboot %lX or press 'X' to abort...", boot_addr);
+		unsigned char abort = 0;
+		int ctr = 50;
+		while (ctr--) {
+			int c = uart_readc_nowait();
+			uart_wait_100ms();
+			if (toupper(c) == 'X') {
+				puts("aborted");
+				abort = 1;
+				break;
+			}
+		}		
+
+		if (!abort)
+		{
+			puts("go");
+			do_boot(boot_addr, 1);
+		}
+	}
+
 
 	ram_detect();
 
 
-	puts("\n\nSBC09 - Bootloader\n====================\n");
 	// check type of flash rom present
 	// map bottom of flash into mmu at 8000
 	mmu_16(2) = 0;

@@ -1,6 +1,6 @@
 ; This program is intended to be a faster SREC loader that is bootstrapped by the BASIC srec loader
 ; This program then loads a larger program into memory
-; This program relocates itself to 800..DFF and uses 600..6FF as workspace
+; This program relocates itself to 800..CFF and uses 600..6FF as workspace
 
 		ORG	$E00
 
