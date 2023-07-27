@@ -89,7 +89,8 @@ void boot(const char *p) {
 			warm = 1;
 		}
 		else if (*p == '!') {
-			set_reboot(phys_addr);
+			if (iAmBootRom)
+				set_reboot(phys_addr);
 		}
 		else {
 			goto ERROR;
@@ -428,28 +429,34 @@ int main(void) {
 
 	puts("\n\nSBC09 - Bootloader\n====================\n");
 
-	unsigned long boot_addr = *R_REBOOT;
-	if (boot_addr != 0 && boot_addr == ~*R_REBOOT_I) {
-		printf("\n\n---Reboot %lX or press 'X' to abort...", boot_addr);
-		unsigned char abort = 0;
-		int ctr = 50;
-		while (ctr--) {
-			int c = uart_readc_nowait();
-			uart_wait_100ms();
-			if (toupper(c) == 'X') {
-				puts("aborted");
-				abort = 1;
-				break;
-			}
-		}		
+	if (iAmBootRom) {
+		unsigned long boot_addr = *R_REBOOT;
+		if (boot_addr != 0 && boot_addr == ~*R_REBOOT_I) {
+			printf("\n\n---Reboot %lX or press 'X' to abort...", boot_addr);
+			unsigned char abort = 0;
+			int ctr = 50;
+			while (ctr--) {
+				int c = uart_readc_nowait();
+				uart_wait_100ms();
+				if (toupper(c) == 'X') {
+					puts("aborted");
+					abort = 1;
+					break;
+				}
+			}		
 
-		if (!abort)
-		{
-			puts("go");
-			do_boot(boot_addr, 1);
+			if (!abort)
+			{
+				puts("go");
+				do_boot(boot_addr, 1);
+			}
 		}
+	} else {
+		puts("Running from BASIC - no autoboot");		
 	}
 
+	// clear auto boot
+	*R_REBOOT = 0;
 
 	ram_detect();
 
