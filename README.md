@@ -74,6 +74,25 @@ The Flash ROM and RAM excluding the bottom 32K and top 80K will be scanned in
 
 TODO: Show examples
 
+## ! : Boot image
+
+	! <phys addr> [W|!]+
+
+This command will call an SBC09MOS image via its boot entry point. Images that
+can be booted in this way will have a line starting "MOS" in the catalogue i.e.:
+
+	MOS  : 00C000 : !F800   :        Midi-mos test
+
+The entry point for this rom is indicated in the third field typing !F800 will 
+boot this image.
+
+The W flag can be added for a "warm" boot i.e. the MOS will not clear all memory
+if this flag is supplied and OLD will work. This should only be used if the image
+(or a similar one) has already been booted since the system was powered up.
+
+The ! flag can be added to automatically warm boot this image on subsequent resets
+this will remain in force until the next power cycle.
+
 ## D : Dump buffer
 
 	D [<buffer address>]
