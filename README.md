@@ -70,7 +70,7 @@ The Flash ROM and RAM excluding the bottom 32K and top 80K will be scanned in
 16K chunks for "ROM"s that look like:
 
 - BBC Micro Sideways ROM - byte offset 7 points at "(C)" copyright string
-- SBC09MOS - offset 3802..3809 contains string "SBC09MOS"
+- SBC09MOS - offset 3802..380B contains string "SBC09MOS"
 
 TODO: Show examples
 
@@ -92,6 +92,26 @@ if this flag is supplied and OLD will work. This should only be used if the imag
 
 The ! flag can be added to automatically warm boot this image on subsequent resets
 this will remain in force until the next power cycle.
+
+The "boot" command does the following:
+
+- calculate the 16k block number of the phys addr (B)
+- calculate the offset of phys addr within 16K (X)
+- maps the lowest block of RAM in at 8000-BFFF
+- copies the rest of the process to this block at offset $100
+- maps the lowest two blocks of RAM in 0000-7FFF
+- jumps to 0100 to execute the rest of code just copied
+- maps the block containing the phys address in to C000-FFFF
+- maps the block preceding that to 8000-BFFF
+- sets B to the block number mapped in to C000
+- sets A to 0 for cold boot, 1 for warm start
+- jump indirect to X
+
+In this way the ! command can also be used to boot via the normal reset vector i.e.
+
+	!377FE
+
+would boot via the normal reset vector
 
 ## D : Dump buffer
 
